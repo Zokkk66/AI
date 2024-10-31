@@ -1,1 +1,74 @@
-// script.js // 按钮交互 document.getElementById('interactive-button').addEventListener('click', function() { alert('按钮被点击了！'); }); // 模态框交互 var modal = document.getElementById("myModal"); var btn = document.getElementById("myBtn"); // 触发模态框的按钮 var span = document.getElementsByClassName("close")[0]; btn.onclick = function() { modal.style.display = "block"; } span.onclick = function() { modal.style.display = "none"; } window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } } // 轮播图初始化 var mySwiper = new Swiper('.swiper-container', { loop: true, pagination: { el: '.swiper-pagination', clickable: true, }, navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev', }, }); // 表单验证 document.getElementById('myForm').addEventListener('submit', function(event) { var email = document.getElementById('email'); if (!email.checkValidity()) { alert('请输入有效的电子邮件地址'); event.preventDefault(); } }); // 滚动动画 AOS.init(); // 拖放功能 var draggable = document.getElementById('draggable'); var dropzone = document.getElementById('dropzone'); draggable.addEventListener('dragstart', function(event) { event.dataTransfer.setData('text/plain', event.target.id); }); dropzone.addEventListener('dragover', function(event) { event.preventDefault(); }); dropzone.addEventListener('drop', function(event) { event.preventDefault(); var data = event.dataTransfer.getData('text'); dropzone.appendChild(document.getElementById(data)); }); // 地理定位 if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(function(position) { var lat = position.coords.latitude; var lng = position.coords.longitude; document.getElementById('geolocation').innerHTML = '纬度: ' + lat + ', 经度: ' + lng; }); } // 语音识别 var recognition = new webkitSpeechRecognition(); recognition.onresult = function(event) { console.log(event.results[0][0].transcript); } document.getElementById('speech-button').addEventListener('click', function() { recognition.start(); }); // 实时数据更新 var socket = io(); socket.on('update', function(data) { document.getElementById('real-time-data').innerHTML = data; }); // 交互式图表 var ctx = document.getElementById('chart').getContext('2d'); var myChart = new Chart(ctx, { type: 'bar', data: { labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'], datasets: [{ label: '# of Votes', data: [12, 19, 3, 5, 2, 3], backgroundColor: [ 'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)' ], borderColor: [ 'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)' ], borderWidth: 1 }] }, options: { scales: { y: { beginAtZero: true } } } }); // 视频和音频控制 document.getElementById('video').addEventListener('play', function() { console.log('视频开始播放'); }); document.getElementById('audio').addEventListener('play', function() { console.log('音频开始播放'); }); // 机器学习模型 async function run() { // 定义一个简单的线性模型 const model = tf.sequential(); model.add(tf.layers.dense({units: 1, inputShape: [1]})); // 编译模型 model.compile({loss: 'meanSquaredError', optimizer: 'sgd'}); // 生成一些合成数据 const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]); const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]); // 训练模型 await model.fit(xs, ys, {epochs: 500}); // 使用模型进行预测 document.getElementById('predict-button').addEventListener('click', () => { const input = parseFloat(document.getElementById('input').value); const output = model.predict(tf.tensor2d([input], [1, 1])); alert('预测结果: ' + output.dataSync()[0]); }); } run(); // 旋转动画 gsap.to("#animated-element", {duration: 2, rotation: 360, repeat: -1});
+// script.js
+
+document.addEventListener('DOMContentLoaded', function () {
+    const title = document.getElementById('color-changing-title');
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+    let index = 0;
+    setInterval(function () {
+        title.style.color = colors[index];
+        index = (index + 1) % colors.length;
+    }, 1000);
+
+    // 搜索框功能
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const searchFeedback = document.getElementById('searchFeedback');
+
+    searchButton.addEventListener('click', function () {
+        const query = searchInput.value;
+        // 这里可以添加搜索逻辑
+        searchFeedback.textContent = '搜索结果：' + query;
+    });
+
+    // 轮播图逻辑
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-item');
+    const totalSlides = slides.length;
+    const prevButton = document.querySelector('.carousel-button.prev');
+    const nextButton = document.querySelector('.carousel-button.next');
+    const modal = document.getElementById('modal');
+    const buyButtons = document.querySelectorAll('.buy-button');
+    const closeButton = document.querySelector('.close-button');
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.style.display = i === index ? 'block' : 'none';
+        });
+    }
+
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        showSlide(currentSlide);
+    }
+
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        showSlide(currentSlide);
+    }
+
+    prevButton.addEventListener('click', prevSlide);
+    nextButton.addEventListener('click', nextSlide);
+
+    // 模态窗口逻辑
+    function openModal() {
+        modal.style.display = 'block';
+        currentSlide = 0;
+        showSlide(currentSlide);
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    buyButtons.forEach(button => {
+        button.addEventListener('click', openModal);
+    });
+
+    closeButton.addEventListener('click', closeModal);
+
+    window.addEventListener('click', function (event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    });
+});
