@@ -3,85 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>完整交互式网页框架</title>
-    <!-- 引入CSS样式 -->
+    <title>整合后的网页</title>
+    <!-- 引入外部CSS文件 -->
     <link rel="stylesheet" href="styles.css">
-    <!-- 引入必要的CSS库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.4.5/swiper-bundle.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ar.js@latest/aframe/build/aframe-ar.css">
-    <link rel="stylesheet" href="https://aframe.io/releases/1.0.4/aframe.min.css">
 </head>
 <body>
-
-<!-- 按钮 -->
-<button id="interactive-button">点击我</button>
-
-<!-- 模态框 -->
-<div id="myModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <p>这是模态框内容。</p>
-  </div>
-</div>
-
-<!-- 轮播图 -->
-<div class="swiper-container">
-    <div class="swiper-wrapper">
-        <div class="swiper-slide">幻灯片 1</div>
-        <div class="swiper-slide">幻灯片 2</div>
-        <div class="swiper-slide">幻灯片 3</div>
+    <!-- 搜索框 -->
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="搜索♢□◇○...">
+        <button type="submit" id="searchButton">搜索</button>
+        <span id="searchFeedback"></span>
     </div>
-    <!-- 如果需要分页器 -->
-    <div class="swiper-pagination"></div>
-    
-    <!-- 如果需要导航按钮 -->
-    <div class="swiper-button-prev"></div>
-    <div class="swiper-button-next"></div>
-</div>
-
-<!-- 表单 -->
-<form id="myForm">
-  <input type="email" id="email" required>
-  <button type="submit">提交</button>
-</form>
-
-<!-- 滚动动画 -->
-<div data-aos="fade-up">滚动我</div>
-
-<!-- 拖放功能 -->
-<div id="draggable" draggable="true">拖动我</div>
-<div id="dropzone">放置区域</div>
-
-<!-- 地理定位 -->
-<div id="geolocation"></div>
-
-<!-- 语音识别 -->
-<button id="speech-button">开始语音识别</button>
-
-<!-- 实时数据更新 -->
-<div id="real-time-data"></div>
-
-<!-- 交互式图表 -->
-<div id="chart"></div>
-
-<!-- 视频和音频 -->
-<video id="video" controls>
-    <source src="your-video-file.mp4" type="video/mp4">
-    您的浏览器不支持视频标签。
-</video>
-<audio id="audio" controls>
-    <source src="your-audio-file.mp3" type="audio/mpeg">
-    您的浏览器不支持音频标签。
-</audio>
-
-<!-- 引入JavaScript库 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.4.5/swiper-bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/ar.js@latest/aframe/build/aframe-ar.js"></script>
-<script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-<script src="script.js"></script>
+    <!-- 文章容器部分 -->
+    <div class="article-container">
+        <!-- 文章头部区域 -->
+        <header>
+            <h1 id="color-changing-title">标题不小心被吃掉了</h1>
+            <p class="author-date">
+                <span class="author">作者：[佐罗斯]</span>
+                <span class="date">发布时间：[尧舜时期]</span>
+            </p>
+        </header>
+        <!-- 正文区域 -->
+        <section class="content">
+            <div class="video-container">
+                <video controls>
+                    <source src="example_mpx/example-video.mp4" type="video/mp4">
+                    您的浏览器不支持视频标签，请更换浏览器查看。
+                </video>
+            </div>
+            <h2>名字不超过一个字</h2>
+            <p>正文段落内容超级无敌吊炸天，段落之间有一定的行间距。这是为了提供更好的赤石体验，文字字体为微软雅黑，大小为16px左右。</p>
+            <h3>这个标题隐藏失败</h3>
+            <p>这是另一段内容。</p>
+            <!-- 商店功能 -->
+            <div class="store">
+                <div class="product">
+                    <img src="modal_images/product-image.jpg" alt="商品图片">
+                    <h4>奖品是啥</h4>
+                    <p>价格: ¥99.99</p>
+                    <button class="buy-button">查看更多</button>
+                </div>
+                <!-- 可以添加更多商品 -->
+            </div>
+            <!-- 音频播放器 -->
+            <audio controls src="example_mpx/example-audio.mp3">
+                您的浏览器不支持音频标签，请更换浏览器查看。
+            </audio>
+        </section>
+        <!-- 底部区域 -->
+        <footer>
+            <p class="copyright">版权信息：版权所有 &copy; [版权所有者]。</p>
+        </footer>
+        <!-- 交互元素 -->
+        <div class="interaction-buttons">
+            <div class="share-buttons">
+                <img src="share_icon/wechat-share-icon.png" alt="微信分享图标">
+                <img src="share_icon/moment-share-icon.png" alt="朋友圈分享图标">
+            </div>
+            <div class="share_icon/like-watch-button">
+                <img src="share_icon/like-icon.png" alt="没有了">
+                <img src="share_icon/watch-icon.png" alt="没有更多了">
+            </div>
+            <div class="comment-button">
+                <img src="share_icon/comment-icon.png" alt="敬请期待">
+            </div>
+        </div>
+    </div>
+    <!-- 模态窗口 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div class="carousel">
+                <!-- 轮播图内容 -->
+                <div class="carousel-item">
+                    <img src="modal_images/product-image1.jpg" alt="商品图片1">
+                    <p>1:昙花若只一现 更要开的耀眼。</p>
+                </div>
+                <div class="carousel-item">
+                    <img src="modal_images/product-image2.jpg" alt="商品图片2">
+                    <p>2:昙花若只一现 更要开的耀眼</p>
+                </div>
+                <div class="carousel-item">
+                    <img src="modal_images/product-image3.jpg" alt="商品图片3">
+                    <p>3:昙花若只一现 更要开的耀眼</p>
+                </div>
+                <div class="carousel-item">
+                    <img src="modal_images/product-image3.jpg" alt="商品图片3">
+                    <p>4:昙花若只一现 更要开的耀眼</p>
+                </div>
+                <div class="carousel-item">
+                    <img src="modal_images/product-image3.jpg" alt="商品图片3">
+                    <p>5:昙花若只一现 更要开的耀眼</p>
+                </div>
+                <!-- 可以添加更多轮播图项 -->
+            </div>
+            <!-- 轮播图导航按钮 -->
+            <button class="carousel-button prev">&lt;</button>
+            <button class="carousel-button next">&gt;</button>
+        </div>
+    </div>
+    <!-- 导航栏 -->
+    <nav>
+        <a href="#">首页</a>
+        <a href="#">关于</a>
+        <a href="#">联系我们</a>
+        <a href="#">更多</a>
+        <a href="">海洛AI</a>
+    </nav>
+    <!-- JavaScript部分 -->
+    <script src="script.js"></script>
 </body>
 </html>
