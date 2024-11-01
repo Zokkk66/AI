@@ -10,9 +10,34 @@ body {
 /* 搜索框样式 */
 .search-container {
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* 改为垂直方向排列 */
+    align-items: center; /* 居中对齐 */
     margin: 20px 0;
     position: relative;
+}
+
+.search-container input {
+    width: 300px; /* 设置输入框宽度 */
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.search-container button {
+    width: 100px; /* 设置按钮宽度 */
+    padding: 5px;
+    border: none;
+    border-radius: 3px;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 5px; /* 添加按钮与输入框之间的间距 */
+}
+
+.search-container #searchFeedback {
+    margin-top: 10px; /* 添加反馈信息与按钮之间的间距 */
+    font-size: 12px;
+    color: #007bff;
 }
 
 /* 文章容器样式 */
@@ -55,11 +80,25 @@ nav {
     text-decoration: none;
     padding: 14px 16px;
     display: inline-block;
+    position: relative; /* 为伪元素定位做准备 */
 }
 
-.nav-links a:hover {
-    background-color: #ddd;
-    color: black;
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    transform: scaleX(0);
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: #fff;
+    transform-origin: bottom right;
+    transition: transform 0.25s ease-out;
+}
+
+.nav-links a:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
 }
 
 /* 媒体查询，用于响应式导航栏 */
@@ -75,6 +114,10 @@ nav {
         text-align: center; /* 文字居中 */
         padding: 14px;
         border-top: 1px solid #444;
+    }
+
+    .nav-links a::after {
+        display: none; /* 隐藏伪元素 */
     }
 
     .nav-toggle {
