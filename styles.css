@@ -11,15 +11,15 @@ body {
 .search-container {
     display: flex;
     justify-content: center; /* 水平居中 */
-    margin: 20px 10;
+    margin: 20px 0;
     position: relative;
 }
 
 .search-container input {
     padding: 10px; /* 增加内边距 */
     border: 1px solid #ccc;
-    border-radius: 10px; /* 圆角边框 */
-    width: 280px; /* 固定宽度 */
+    border-radius: 20px; /* 圆角边框 */
+    width: 300px; /* 固定宽度 */
     font-size: 16px; /* 字体大小 */
     transition: border-color 0.3s; /* 边框颜色过渡效果 */
 }
@@ -32,7 +32,7 @@ body {
 .search-container button {
     padding: 10px 20px; /* 增加内边距 */
     border: none;
-    border-radius: 10px; /* 圆角边框 */
+    border-radius: 20px; /* 圆角边框 */
     background-color: #007bff;
     color: #fff;
     cursor: pointer;
@@ -47,15 +47,11 @@ body {
 
 /* 搜索反馈信息样式 */
 .search-container #searchFeedback {
-    position: absolute;
-    bottom: - 20px;
-    left: 0;
-    margin-top: 20px; /* 反馈信息与搜索框之间的间距 */
+    margin-top: 10px; /* 反馈信息与搜索框之间的间距 */
     font-size: 14px; /* 字体大小 */
     color: #007bff;
     text-align: center; /* 反馈信息居中显示 */
 }
-
 
 /* 文章容器样式 */
 .article-container {
@@ -261,4 +257,157 @@ nav {
     background-color: rgba(0,0,0,0.5); /* 半透明背景 */
 }
 
-/* ... */
+/* 轮播图样式 */
+.carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.carousel-item {
+    display: none;
+    text-align: center;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: auto;
+}
+
+.carousel-item p {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #444;
+}
+
+/* 轮播图导航按钮 */
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0,0,0,0.5);
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.carousel-button.prev {
+    left: 10px;
+}
+
+.carousel-button.next {
+    right: 10px;
+}
+
+/* 视频容器样式 */
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9比例 */
+    height: 0;
+    overflow: hidden;
+}
+
+.video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* 音频播放器样式 */
+.audio-container {
+    margin-top: 30px;
+}
+
+/* 底部区域样式 */
+.article-container footer {
+    margin-top: 20px;
+}
+
+.article-container footer .copyright {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+}
+
+/* 交互元素样式 */
+.article-container .interaction-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.article-container .share-buttons img,
+.article-container .like-watch-button img,
+.article-container .comment-button img {
+    width: 30px;
+    height: 30px;
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.article-container .share-buttons img:hover,
+.article-container .like-watch-button img:hover,
+.article-container .comment-button img:hover {
+    filter: grayscale(0%);
+}
+
+/* 模态窗口内容样式 */
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 25px;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 轮播图项样式 */
+.carousel-item {
+    display: none;
+    text-align: center;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: auto;
+}
+
+.carousel-item p {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #444;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+    .article-container {
+        width: 92%;
+        padding: 10px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .article-container {
+        padding: 5px;
+    }
+}
