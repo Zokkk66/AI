@@ -403,7 +403,7 @@ nav {
 /* 针对平板设备 */
 @media screen and (max-width: 768px) {
     .article-container, .table-container, .project-container {
-        width: 92%;
+        width: 88%;
         padding: 10px;
     }
 }
