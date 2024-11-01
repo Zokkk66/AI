@@ -11,7 +11,7 @@ body {
 .search-container {
     display: flex;
     justify-content: center;
-    margin: 20px 0;
+    margin: 10px 0;
     position: relative;
     width: 100%;
 }
@@ -32,7 +32,7 @@ body {
 }
 
 .search-container button {
-    padding: 10px 20px;
+    padding: 10px 10px;
     border: none;
     border-radius: 10px;
     background-color: #007bff;
@@ -50,10 +50,6 @@ body {
 /* 搜索反馈信息样式 */
 .search-container #searchFeedback {
     margin-top: 10px;
-    position: absolute;
-    bottom: - 15px;
-    left: 0;
-    width:280px;
     font-size: 14px;
     color: #007bff;
     text-align: center;
