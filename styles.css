@@ -17,11 +17,11 @@ body {
 }
 
 .search-container input {
-    width: 80%;
-    max-width: 400px; /* 设置最大宽度 */
+    width: 90%;
+    max-width: 500px; /* 设置最大宽度 */
     padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 20px;
+    border-radius: 10px;
     font-size: 16px;
     transition: border-color 0.3s;
 }
@@ -34,7 +34,7 @@ body {
 .search-container button {
     padding: 10px 20px;
     border: none;
-    border-radius: 20px;
+    border-radius: 10px;
     background-color: #007bff;
     color: #fff;
     cursor: pointer;
@@ -50,6 +50,10 @@ body {
 /* 搜索反馈信息样式 */
 .search-container #searchFeedback {
     margin-top: 10px;
+    position: absolute;
+    bottom: - 15px;
+    left: 0;
+    width:280px;
     font-size: 14px;
     color: #007bff;
     text-align: center;
