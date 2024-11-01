@@ -277,32 +277,37 @@ nav {
     padding: 5px 0;
 }
 
-/* 商店模块 */
+/* 商店功能模块 */
 .store {
     display: flex;
-    justify-content: center; /* 居中对齐 */
-    flex-wrap: wrap; /* 允许换行 */
+    justify-content: space-around;
     margin-top: 20px;
 }
 
 .product {
     text-align: center;
-    margin: 10px;
 }
 
-/* 查看更多按钮模块 */
+.product img {
+    width: 100px;
+    height: 100px;
+}
+
+.product h4 {
+    margin: 10px 0;
+}
+
+.product p {
+    margin: 5px 0;
+}
+
 .product button {
-    padding: 10px 20px;
+    padding: 5px 10px;
     border: none;
-    border-radius: 20px;
+    border-radius: 3px;
     background-color: #007bff;
     color: #fff;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.product button:hover {
-    background-color: #0056b3;
 }
 
 /* 模态窗口模块 */
