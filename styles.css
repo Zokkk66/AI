@@ -74,7 +74,7 @@ body {
     }
 }
 
-/* 文章容器样式 */
+/* 文章容器模块 */
 .article-container {
     width: 80%;
     margin: 20px auto;
@@ -84,52 +84,6 @@ body {
     border-radius: 5px;
 }
 
-/* 文章头部区域样式 */
-.article-container header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-/* 文章标题样式 */
-.article-container header h1 {
-    color: #007bff;
-    font-size: 28px;
-    margin-bottom: 10px;
-}
-
-/* 文章作者与日期样式 */
-.article-container header.author-date {
-    color: #666;
-    font-size: 14px;
-}
-
-/* 正文区域样式 */
-.article-container.content {
-    font-size: 16px;
-    line-height: 1.6;
-    color: #444;
-}
-
-/* 二级标题样式 */
-.article-container.content h2 {
-    font-size: 24px;
-    margin-top: 20px;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-/* 三级标题样式 */
-.article-container.content h3 {
-    font-size: 20px;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    color: #666;
-}
-
-/* 段落样式 */
-.article-container.content p {
-    margin-bottom: 15px;
-}
 /* 表格容器模块 */
 .table-container {
     width: 80%;
@@ -323,36 +277,31 @@ nav {
     padding: 5px 0;
 }
 
-/* 商店功能样式 */
-.article-container.store {
+/* 商店功能模块 */
+.store {
     display: flex;
     justify-content: space-around;
     margin-top: 20px;
 }
 
-/* 商品样式 */
-.article-container.product {
+.product {
     text-align: center;
 }
 
-/* 商品图片样式 */
-.article-container.product img {
+.product img {
     width: 100px;
     height: 100px;
 }
 
-/* 商品标题样式 */
-.article-container.product h4 {
+.product h4 {
     margin: 10px 0;
 }
 
-/* 商品价格样式 */
-.article-container.product p {
+.product p {
     margin: 5px 0;
 }
 
-/* 查看更多按钮样式 */
-.article-container.product button {
+.product button {
     padding: 5px 10px;
     border: none;
     border-radius: 3px;
@@ -417,17 +366,15 @@ nav {
     right: 10px;
 }
 
-/* 视频容器样式 */
-.article-container.video-container {
+/* 视频容器模块 */
+.video-container {
     position: relative;
     padding-bottom: 56.25%; /* 16:9比例 */
     height: 0;
     overflow: hidden;
-    margin-bottom: 20px;
 }
 
-/* 视频播放器模块 */
-.article-container.video-container video {
+.video-container video {
     position: absolute;
     top: 0;
     left: 0;
@@ -436,7 +383,7 @@ nav {
 }
 
 /* 音频播放器模块 */
-.article-container.audio-container {
+.audio-container {
     margin-top: 30px;
 }
 
@@ -445,37 +392,34 @@ nav {
     margin-top: 20px;
 }
 
-/* 版权信息样式 */
-.article-container footer.copyright {
+.article-container footer .copyright {
     font-size: 14px;
     color: #666;
     text-align: center;
 }
 
 /* 交互元素模块 */
-.article-container.interaction-buttons {
+.article-container .interaction-buttons {
     display: flex;
     justify-content: space-around;
     margin-top: 20px;
 }
 
-/* 分享按钮图标样式 */
-.article-container.share-buttons img,
-.article-container.like-watch-button img,
-.article-container.comment-button img {
+.article-container .share-buttons img,
+.article-container .like-watch-button img,
+.article-container .comment-button img {
     width: 30px;
     height: 30px;
     filter: grayscale(100%);
     transition: filter 0.3s ease;
 }
 
-/* 交互元素悬停效果 */
-.article-container.share-buttons img:hover,
-.article-container.like-watch-button img:hover,
-.article-container.comment-button img:hover {
+.article-container .share-buttons img:hover,
+.article-container .like-watch-button img:hover,
+.article-container .comment-button img:hover {
     filter: grayscale(0%);
 }
-  
+
 /* 模态窗口内容模块 */
 .modal-content {
     background-color: #fefefe;
