@@ -103,14 +103,65 @@
             <button class="carousel-button next">&gt;</button>
         </div>
     </div>
+    <!-- 表格功能 -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>项目名称</th>
+                    <th>负责人</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>项目A</td>
+                    <td>张三</td>
+                    <td>进行中</td>
+                    <td><button>查看</button></td>
+                </tr>
+                <tr>
+                    <td>项目B</td>
+                    <td>李四</td>
+                    <td>已完成</td>
+                    <td><button>查看</button></td>
+                </tr>
+                <!-- 可以添加更多行 -->
+            </tbody>
+        </table>
+    </div>
+    <!-- 项目功能 -->
+    <div class="project-container">
+        <h2>项目列表</h2>
+        <ul>
+            <li>项目A</li>
+            <li>项目B</li>
+            <!-- 可以添加更多项目 -->
+        </ul>
+    </div>
     <!-- 导航栏 -->
     <nav>
-        <a href="#">首页</a>
-        <a href="#">关于</a>
-        <a href="#">联系我们</a>
-        <a href="#">更多</a>
-        <a href="">海洛AI</a>
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="#">Logo</a>
+            </div>
+            <div class="nav-links">
+                <a href="#">首页</a>
+                <a href="#">关于</a>
+                <a href="#">联系我们</a>
+                <a href="#">更多</a>
+                <a href="">海洛AI</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
     </nav>
+    <!-- 回到顶部按钮 -->
+    <button id="backToTopBtn" title="回到顶部">↑</button>
     <!-- JavaScript部分 -->
     <script src="script.js"></script>
 </body>
