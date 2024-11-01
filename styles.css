@@ -11,7 +11,7 @@ body {
 .search-container {
     display: flex;
     justify-content: center; /* 水平居中 */
-    margin: 20px 20;
+    margin: 20px 10;
     position: relative;
 }
 
@@ -19,7 +19,7 @@ body {
     padding: 10px; /* 增加内边距 */
     border: 1px solid #ccc;
     border-radius: 10px; /* 圆角边框 */
-    width: 250px; /* 固定宽度 */
+    width: 280px; /* 固定宽度 */
     font-size: 16px; /* 字体大小 */
     transition: border-color 0.3s; /* 边框颜色过渡效果 */
 }
@@ -32,7 +32,7 @@ body {
 .search-container button {
     padding: 10px 20px; /* 增加内边距 */
     border: none;
-    border-radius: 20px; /* 圆角边框 */
+    border-radius: 10px; /* 圆角边框 */
     background-color: #007bff;
     color: #fff;
     cursor: pointer;
