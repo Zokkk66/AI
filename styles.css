@@ -47,6 +47,9 @@ body {
 
 /* 搜索反馈信息样式 */
 .search-container #searchFeedback {
+    position: absolute;
+    bottom: - 20px;
+    left: 0;
     margin-top: 20px; /* 反馈信息与搜索框之间的间距 */
     font-size: 14px; /* 字体大小 */
     color: #007bff;
