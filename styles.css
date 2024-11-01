@@ -19,7 +19,7 @@ body {
     padding: 10px; /* 增加内边距 */
     border: 1px solid #ccc;
     border-radius: 10px; /* 圆角边框 */
-    width: 280px; /* 固定宽度 */
+    width: 300px; /* 固定宽度 */
     font-size: 16px; /* 字体大小 */
     transition: border-color 0.3s; /* 边框颜色过渡效果 */
 }
