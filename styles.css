@@ -47,11 +47,13 @@ body {
 
 /* 搜索反馈信息样式 */
 .search-container #searchFeedback {
-    margin-top: 10px; /* 反馈信息与搜索框之间的间距 */
+    margin-top: 2px; /* 反馈信息与搜索框之间的间距 */
     font-size: 14px; /* 字体大小 */
     color: #007bff;
+    width:280px; /* 与搜索输入框同宽 */
     text-align: center; /* 反馈信息居中显示 */
 }
+
 
 /* 文章容器样式 */
 .article-container {
