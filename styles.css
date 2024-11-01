@@ -411,3 +411,121 @@ nav {
         padding: 5px;
     }
 }
+
+/* 响应式设计 */
+
+/* 针对平板设备 */
+@media screen and (max-width: 1024px) {
+    .search-container input {
+        width: 250px;
+    }
+
+    .nav-links a {
+        padding: 14px 10px;
+    }
+
+    .article-container, .table-container, .project-container {
+        width: 90%;
+    }
+}
+
+/* 针对手机设备 */
+@media screen and (max-width: 768px) {
+    .search-container input {
+        width: 200px;
+    }
+
+    .nav-links a {
+        padding: 14px;
+    }
+
+    .article-container, .table-container, .project-container {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .nav-links {
+        flex-direction: column;
+    }
+
+    .nav-links a {
+        text-align: center;
+    }
+
+    .nav-toggle {
+        display: block;
+    }
+
+    .nav-toggle span {
+        display: block;
+        width: 25px;
+        height: 3px;
+        margin: 5px auto;
+        background-color: white;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .nav-active {
+        display: flex;
+    }
+
+    .nav-toggle.active span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+
+    .nav-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .nav-toggle.active span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    .carousel-button {
+        padding: 5px;
+    }
+
+    .carousel-item p {
+        font-size: 14px;
+    }
+
+    .interaction-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .share-buttons, .like-watch-button, .comment-button {
+        margin: 10px 0;
+    }
+}
+
+/* 针对更小屏幕的手机设备 */
+@media screen and (max-width: 480px) {
+    .search-container input {
+        width: 150px;
+    }
+
+    .nav-links a {
+        padding: 10px;
+    }
+
+    .article-container, .table-container, .project-container {
+        padding: 5px;
+    }
+
+    .carousel-button {
+        padding: 3px;
+    }
+
+    .carousel-item p {
+        font-size: 12px;
+    }
+
+    .interaction-buttons {
+        margin-top: 10px;
+    }
+
+    .share-buttons, .like-watch-button, .comment-button {
+        margin: 5px 0;
+    }
+}
