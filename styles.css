@@ -10,34 +10,47 @@ body {
 /* 搜索框样式 */
 .search-container {
     display: flex;
-    flex-direction: column; /* 改为垂直方向排列 */
-    align-items: center; /* 居中对齐 */
+    justify-content: center; /* 水平居中 */
     margin: 20px 0;
     position: relative;
 }
 
 .search-container input {
-    width: 300px; /* 设置输入框宽度 */
-    padding: 5px;
+    padding: 10px; /* 增加内边距 */
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 20px; /* 圆角边框 */
+    width: 300px; /* 固定宽度 */
+    font-size: 16px; /* 字体大小 */
+    transition: border-color 0.3s; /* 边框颜色过渡效果 */
+}
+
+.search-container input:focus {
+    border-color: #007bff; /* 聚焦时边框颜色变化 */
+    outline: none; /* 去除默认聚焦轮廓 */
 }
 
 .search-container button {
-    width: 100px; /* 设置按钮宽度 */
-    padding: 5px;
+    padding: 10px 20px; /* 增加内边距 */
     border: none;
-    border-radius: 3px;
+    border-radius: 20px; /* 圆角边框 */
     background-color: #007bff;
     color: #fff;
     cursor: pointer;
-    margin-top: 5px; /* 添加按钮与输入框之间的间距 */
+    margin-left: -40px; /* 按钮与输入框重叠 */
+    transition: background-color 0.3s; /* 背景颜色过渡效果 */
+    z-index: 1; /* 确保按钮在输入框之上 */
 }
 
+.search-container button:hover {
+    background-color: #0056b3; /* 悬停时背景颜色变化 */
+}
+
+/* 搜索反馈信息样式 */
 .search-container #searchFeedback {
-    margin-top: 10px; /* 添加反馈信息与按钮之间的间距 */
-    font-size: 12px;
+    margin-top: 10px; /* 反馈信息与搜索框之间的间距 */
+    font-size: 14px; /* 字体大小 */
     color: #007bff;
+    text-align: center; /* 反馈信息居中显示 */
 }
 
 /* 文章容器样式 */
