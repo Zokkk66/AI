@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // 导航栏切换逻辑
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
+    const navToggle = document.querySelector('.nav - toggle');
+    const navLinks = document.querySelector('.nav - links');
     navToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('nav-active');
+        navLinks.classList.toggle('nav - active');
         navToggle.classList.toggle('active');
     });
 
@@ -43,13 +43,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // 轮播图逻辑
-    const slides = document.querySelectorAll('.carousel-item');
+    const slides = document.querySelectorAll('.carousel - item');
     const totalSlides = slides.length;
-    const prevButton = document.querySelector('.carousel-button.prev');
-    const nextButton = document.querySelector('.carousel-button.next');
+    const prevButton = document.querySelector('.carousel - button.prev');
+    const nextButton = document.querySelector('.carousel - button.next');
     const modal = document.getElementById('modal');
-    const buyButtons = document.querySelectorAll('.buy-button');
-    const closeButton = document.querySelector('.close-button');
+    const buyButtons = document.querySelectorAll('.buy - button');
+    const closeButton = document.querySelector('.close - button');
     let currentSlide = 0;
 
     function showSlide(index) {
