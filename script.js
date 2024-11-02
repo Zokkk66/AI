@@ -1,5 +1,14 @@
 // 当DOM加载完成后执行
+// 标题颜色变化
 document.addEventListener('DOMContentLoaded', function () {
+    const title = document.getElementById('color-changing-title');
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+    let index = 0;
+    setInterval(function () {
+        title.style.color = colors[index];
+        index = (index + 1) % colors.length;
+    }, 1000);
+
     // 回到顶部按钮功能
     const backToTopBtn = document.getElementById('backToTopBtn');
     window.onscroll = function () {
@@ -23,16 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
         navLinks.classList.toggle('nav-active');
         navToggle.classList.toggle('active');
     });
-
-    // 标题颜色变化逻辑
-    const title = document.getElementById('color - changing - title');
-    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
-    let index = 0;
-    function changeColor() {
-        title.style.color = colors[index];
-        index = (index + 1) % colors.length;
-    }
-    setInterval(changeColor, 1000);
 
     // 搜索框功能
     const searchInput = document.getElementById('searchInput');
