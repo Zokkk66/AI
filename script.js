@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     backToTopBtn.addEventListener('click', function () {
         document.body.scrollTop = 0; // For Safari
         document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-    });
+    };
 
     // 导航栏切换逻辑
     const navToggle = document.querySelector('.nav-toggle');
@@ -26,7 +26,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
     function changeTitleColor() {
         const currentColorIndex = colors.indexOf(title.style.color);
-        const newIndex = (currentColorIndex + 1) % colors.length;
+        let newIndex = (currentColorIndex + 1) % colors.length;
+        if (newIndex < 0) {
+            newIndex = colors.length - 1;
+        }
         title.style.color = colors[newIndex];
     }
     setInterval(changeTitleColor, 1000);
