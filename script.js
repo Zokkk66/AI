@@ -1,61 +1,65 @@
+// 当文档加载完毕时执行
 document.addEventListener('DOMContentLoaded', function () {
-    // 回到顶部按钮功能
-    const backToTopBtn = document.getElementById('backToTopBtn');
+    // 搜索框功能
+    var searchInput = document.getElementById('searchInput');
+    var searchButton = document.getElementById('searchButton');
+    var searchFeedback = document.getElementById('searchFeedback');
+
+    searchButton.addEventListener('click', function () {
+        var query = searchInput.value.trim(); // 移除前后空白字符
+        if (query) {
+            searchFeedback.textContent = '搜索结果：' + query;
+        } else {
+            searchFeedback.textContent = "请输入搜索内容";
+        }
+    });
+
+    // 返回顶部按钮功能
+    var backToTopBtn = document.getElementById('backToTopBtn');
     window.onscroll = function () {
-        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        if (window.pageYOffset > 100) {
             backToTopBtn.style.display = "block";
         } else {
             backToTopBtn.style.display = "none";
         }
     };
     backToTopBtn.addEventListener('click', function () {
-        document.body.scrollTop = 0; // For Safari
-        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-    };
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 
     // 导航栏切换逻辑
-    const navToggle = document.querySelector('.nav - toggle');
-    const navLinks = document.querySelector('.nav - links');
-    navToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('nav - active');
-        navToggle.classList.toggle('active');
+    var navToggle = document.querySelector('.nav-toggle');
+    var navLinks = document.querySelector('.nav-links');
+    navToggle.addEventListener('click', function () {
+        navLinks.classList.toggle('nav-active');
     });
 
     // 字体变色模块
     (function () {
-        const title = document.getElementById('color - changing - title');
-        const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
-        let index = 0;
-        function changeColor() {
-            title.style.color = colors[index];
-            index = (index + 1) % colors.length;
-        }
-        setInterval(changeColor, 1000);
+        var title = document.getElementById('color-changing-title');
+        var colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+        var index = 0;
+        setInterval(function () {
+            title.style.color = colors[index++ % colors.length];
+        }, 1000);
     })();
 
-    // 搜索框功能
-    const searchInput = document.getElementById('searchInput');
-    const searchButton = document.getElementById('searchButton');
-    const searchFeedback = document.getElementById('searchFeedback');
-    searchButton.addEventListener('click', function () {
-        const query = searchInput.value;
-        searchFeedback.textContent = '搜索结果：' + query;
-    });
-
     // 轮播图逻辑
-    const slides = document.querySelectorAll('.carousel - item');
-    const totalSlides = slides.length;
-    const prevButton = document.querySelector('.carousel - button.prev');
-    const nextButton = document.querySelector('.carousel - button.next');
-    const modal = document.getElementById('modal');
-    const buyButtons = document.querySelectorAll('.buy - button');
-    const closeButton = document.querySelector('.close - button');
-    let currentSlide = 0;
+    var slides = document.querySelectorAll('.carousel-item');
+    var totalSlides = slides.length;
+    var currentSlide = 0;
 
     function showSlide(index) {
-        slides.forEach((slide, i) => {
-            slide.style.display = i === index? 'block' : 'none';
-        });
+        for (var i = 0; i < totalSlides; i++) {
+            if (i === index) {
+                slides[i].style.display = 'block';
+            } else {
+                slides[i].style.display = 'none';
+            }
+        }
     }
 
     function nextSlide() {
@@ -68,29 +72,51 @@ document.addEventListener('DOMContentLoaded', function () {
         showSlide(currentSlide);
     }
 
-    prevButton.addEventListener('click', prevSlide);
+    var nextButton = document.querySelector('.carousel-button.next');
     nextButton.addEventListener('click', nextSlide);
 
+    var prevButton = document.querySelector('.carousel-button.prev');
+    prevButton.addEventListener('click', prevSlide);
+
     // 模态窗口逻辑
-    function openModal() {
-        modal.style.display = 'block';
-        currentSlide = 0;
-        showSlide(currentSlide);
-    }
-
-    function closeModal() {
+    var modal = document.getElementById('modal');
+    var closeButton = document.querySelector('.close-button');
+    closeButton.addEventListener('click', function () {
         modal.style.display = 'none';
-    }
-
-    buyButtons.forEach(button => {
-        button.addEventListener('click', openModal);
     });
-
-    closeButton.addEventListener('click', closeModal);
 
     window.addEventListener('click', function (event) {
         if (event.target === modal) {
-            closeModal();
+            modal.style.display = 'none';
+        }
+    });
+
+    // 商店功能
+    var storeItems = document.querySelectorAll('.product');
+    storeItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            alert('商品详情：' + this.querySelector('h4').textContent);
+        });
+    });
+
+    // 音频和视频播放器功能
+    var audioPlayer = document.querySelector('audio');
+    var playButton = document.querySelector('audio + label');
+    playButton.addEventListener('click', function () {
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+        } else {
+            audioPlayer.pause();
+        }
+    });
+
+    var videoContainer = document.querySelector('.video-container');
+    var playVideoButton = document.querySelector('.video-container + label');
+    playVideoButton.addEventListener('click', function () {
+        if (videoContainer.paused) {
+            videoContainer.play();
+        } else {
+            videoContainer.pause();
         }
     });
 });
