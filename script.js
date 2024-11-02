@@ -1,37 +1,38 @@
+// 当DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function () {
     // 回到顶部按钮功能
     const backToTopBtn = document.getElementById('backToTopBtn');
     window.onscroll = function () {
-        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        if (window.scrollY > 20) {
             backToTopBtn.style.display = "block";
         } else {
             backToTopBtn.style.display = "none";
         }
     };
     backToTopBtn.addEventListener('click', function () {
-        document.body.scrollTop = 0; // For Safari
-        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-    };
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 
     // 导航栏切换逻辑
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.nav-links');
-    navToggle.addEventListener('click', () => {
+    navToggle.addEventListener('click', function () {
         navLinks.classList.toggle('nav-active');
         navToggle.classList.toggle('active');
     });
 
-    // 字体变色模块
-    (function () {
-        const title = document.getElementById('color - changing - title');
-        const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
-        let index = 0;
-        function changeColor() {
-            title.style.color = colors[index];
-            index = (index + 1) % colors.length;
-        }
-        setInterval(changeColor, 1000);
-    })();
+    // 标题颜色变化逻辑
+    const title = document.getElementById('color - changing - title');
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+    let index = 0;
+    function changeColor() {
+        title.style.color = colors[index];
+        index = (index + 1) % colors.length;
+    }
+    setInterval(changeColor, 1000);
 
     // 搜索框功能
     const searchInput = document.getElementById('searchInput');
