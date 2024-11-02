@@ -151,10 +151,10 @@ body {
     border-radius: 5px;
 }
 
-/* 响应式设计 */
+/* 容器响应式设计 */
 @media screen and (max-width: 768px) {
     .article-container, .table-container, .project-container {
-        width: 92%;
+        width: 88%;
         padding: 10px;
     }
 }
