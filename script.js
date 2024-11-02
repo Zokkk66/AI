@@ -1,6 +1,6 @@
 // 当DOM加载完成后执行
-// 标题颜色变化
 document.addEventListener('DOMContentLoaded', function () {
+    // 标题颜色变化
     const title = document.getElementById('color-changing-title');
     const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
     let index = 0;
