@@ -21,18 +21,17 @@ document.addEventListener('DOMContentLoaded', function () {
         navToggle.classList.toggle('active');
     });
 
-    // 字体变色功能
-    const title = document.getElementById('color - changing - title');
-    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
-    function changeTitleColor() {
-        const currentColorIndex = colors.indexOf(title.style.color);
-        let newIndex = (currentColorIndex + 1) % colors.length;
-        if (newIndex < 0) {
-            newIndex = colors.length - 1;
+    // 字体变色模块
+    (function () {
+        const title = document.getElementById('color - changing - title');
+        const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+        let index = 0;
+        function changeColor() {
+            title.style.color = colors[index];
+            index = (index + 1) % colors.length;
         }
-        title.style.color = colors[newIndex];
-    }
-    setInterval(changeTitleColor, 1000);
+        setInterval(changeColor, 1000);
+    })();
 
     // 搜索框功能
     const searchInput = document.getElementById('searchInput');
