@@ -2,23 +2,23 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>豆包AI聊天</title>
+    <title>AI聊天助手</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 20px auto;
             padding: 20px;
             background-color: #f0f0f0;
         }
-        #chat-container {
-            background-color: white;
-            height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
+        #chat-box {
+            height: 500px;
+            border: 1px solid #ccc;
             padding: 10px;
+            margin-bottom: 10px;
+            background: white;
+            overflow-y: auto;
+            border-radius: 5px;
         }
         .message {
             margin: 5px 0;
@@ -26,78 +26,98 @@
             border-radius: 5px;
         }
         .user-message {
-            background-color: #e3f2fd;
-            margin-left: 30%;
+            background: #e3f2fd;
+            margin-left: 20%;
         }
-        .ai-message {
-            background-color: #f5f5f5;
-            margin-right: 30%;
+        .bot-message {
+            background: #f5f5f5;
+            margin-right: 20%;
         }
-        input[type="text"] {
-            width: 70%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        #input-box {
+            display: flex;
+            gap: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         button {
-            padding: 8px 15px;
-            background-color: #007bff;
+            padding: 10px 20px;
+            background: #007bff;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
-    <h1>豆包AI聊天</h1>
-    <div id="chat-container"></div>
-    <div>
-        <input type="text" id="user-input" placeholder="请输入消息">
+    <div id="chat-box"></div>
+    <div id="input-box">
+        <input type="text" id="user-input" placeholder="输入消息..." />
         <button onclick="sendMessage()">发送</button>
     </div>
 
     <script>
-        function sendMessage() {
+        // 使用CORS代理解决跨域问题
+        const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
+        const API_URL = 'http://api.qingyunke.com/api.php';
+
+        function appendMessage(message, isUser) {
+            const chatBox = document.getElementById('chat-box');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            msgDiv.innerHTML = message.replace(/{br}/g, '<br>');
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function getAIResponse(message) {
+            try {
+                const encodedMsg = encodeURIComponent(message);
+                const url = `${PROXY_URL}${API_URL}?key=free&appid=0&msg=${encodedMsg}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if(data.result === 0) {
+                    return data.content;
+                }
+                return "好像出错了，请稍后再试";
+            } catch (error) {
+                console.error('Error:', error);
+                return "连接服务失败";
+            }
+        }
+
+        async function sendMessage() {
             const input = document.getElementById('user-input');
             const message = input.value.trim();
             
-            if (message === '') return;
+            if(!message) return;
+
+            // 清空输入框
+            input.value = '';
             
             // 显示用户消息
-            addMessage(message, 'user');
-            input.value = '';
+            appendMessage(message, true);
 
-            // 调用后端API
-            fetch('/chat.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `message=${encodeURIComponent(message)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    addMessage(data.message, 'ai');
-                } else {
-                    addMessage('抱歉，无法获取回复', 'ai');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                addMessage('网络请求失败', 'ai');
-            });
+            // 获取并显示AI回复
+            const response = await getAIResponse(message);
+            appendMessage(response, false);
         }
 
-        function addMessage(text, type) {
-            const container = document.getElementById('chat-container');
-            const div = document.createElement('div');
-            div.className = `message ${type}-message`;
-            div.textContent = text;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
+        // 支持回车发送
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                sendMessage();
+            }
+        });
     </script>
 </body>
 </html>
