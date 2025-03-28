@@ -2,74 +2,78 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>AI聊天助手</title>
+    <title>免费AI聊天助手</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
-            margin: 20px auto;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #f0f0f0;
+            background-color: #f0f2f5;
         }
-        #chat-box {
-            height: 500px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: white;
+        .chat-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            height: 70vh;
             overflow-y: auto;
-            border-radius: 5px;
         }
         .message {
-            margin: 5px 0;
-            padding: 8px;
+            margin: 10px 0;
+            padding: 10px;
             border-radius: 5px;
+            max-width: 80%;
         }
         .user-message {
-            background: #e3f2fd;
-            margin-left: 20%;
+            background-color: #e3f2fd;
+            margin-left: auto;
         }
         .bot-message {
-            background: #f5f5f5;
-            margin-right: 20%;
+            background-color: #f5f5f5;
         }
-        #input-box {
+        .input-container {
+            margin-top: 20px;
             display: flex;
             gap: 10px;
         }
-        #user-input {
+        input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
         }
         button {
-            padding: 10px 20px;
-            background: #007bff;
+            padding: 12px 25px;
+            background-color: #0084ff;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 25px;
             cursor: pointer;
+            transition: background 0.3s;
         }
         button:hover {
-            background: #0056b3;
+            background-color: #0073e6;
         }
     </style>
 </head>
 <body>
-    <div id="chat-box"></div>
-    <div id="input-box">
-        <input type="text" id="user-input" placeholder="输入消息..." />
+    <div class="chat-container" id="chatBox"></div>
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="输入消息..." />
         <button onclick="sendMessage()">发送</button>
     </div>
 
     <script>
-        // 使用CORS代理解决跨域问题
-        const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
-        const API_URL = 'http://api.qingyunke.com/api.php';
+        // 处理回车键
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
 
-        function appendMessage(message, isUser) {
-            const chatBox = document.getElementById('chat-box');
+        // 添加消息到聊天框
+        function addMessage(message, isUser) {
+            const chatBox = document.getElementById('chatBox');
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
             msgDiv.innerHTML = message.replace(/{br}/g, '<br>');
@@ -77,47 +81,34 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        async function getAIResponse(message) {
-            try {
-                const encodedMsg = encodeURIComponent(message);
-                const url = `${PROXY_URL}${API_URL}?key=free&appid=0&msg=${encodedMsg}`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if(data.result === 0) {
-                    return data.content;
-                }
-                return "好像出错了，请稍后再试";
-            } catch (error) {
-                console.error('Error:', error);
-                return "连接服务失败";
-            }
-        }
-
+        // 发送消息函数
         async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const message = input.value.trim();
-            
-            if(!message) return;
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+            if (!message) return;
 
-            // 清空输入框
-            input.value = '';
-            
-            // 显示用户消息
-            appendMessage(message, true);
+            // 添加用户消息
+            addMessage(message, true);
+            userInput.value = '';
 
-            // 获取并显示AI回复
-            const response = await getAIResponse(message);
-            appendMessage(response, false);
-        }
+            try {
+                // 使用CORS代理解决跨域问题
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const apiUrl = `http://api.qingyunke.com/api.php?key=free&appid=0&msg=${encodeURIComponent(message)}`;
+                
+                const response = await fetch(proxyUrl + apiUrl);
+                const data = await response.json();
 
-        // 支持回车发送
-        document.getElementById('user-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                sendMessage();
+                if (data.result === 0) {
+                    addMessage(data.content, false);
+                } else {
+                    addMessage('抱歉，暂时无法处理您的请求', false);
+                }
+            } catch (error) {
+                console.error('请求失败:', error);
+                addMessage('网络连接出现问题，请稍后重试', false);
             }
-        });
+        }
     </script>
 </body>
 </html>
