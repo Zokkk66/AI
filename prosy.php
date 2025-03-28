@@ -1,22 +1,37 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $message = isset($_POST['msg']) ? urlencode($_POST['msg']) : '';
-    $apiUrl = "http://api.qingyunke.com/api.php?key=free&appid=0&msg={$message}";
+    $message = $_POST['message'];
     
-    $response = file_get_contents($apiUrl);
+    // 构建API请求
+    $apiUrl = 'http://api.qingyunke.com/api.php';
+    $params = [
+        'key' => 'free',
+        'appid' => 0,
+        'msg' => $message
+    ];
     
-    if ($response === FALSE) {
-        echo json_encode(['content' => '请求服务失败']);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $apiUrl . '?' . http_build_query($params));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($error) {
+        echo json_encode(['status' => 'error', 'message' => 'API请求失败']);
     } else {
         $data = json_decode($response, true);
-        // 清理返回内容
-        $data['content'] = str_replace(['{br}', '菲菲'], ['', 'AI助手'], $data['content']);
-        echo json_encode($data);
+        if ($data && $data['result'] === 0) {
+            echo json_encode(['status' => 'success', 'message' => $data['content']]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => '未获取到有效回复']);
+        }
     }
 } else {
-    echo json_encode(['content' => '无效的请求方法']);
+    echo json_encode(['status' => 'error', 'message' => '非法请求']);
 }
 ?>
