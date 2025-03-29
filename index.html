@@ -155,7 +155,7 @@
             overflow-y: auto;
             scrollbar-color: #999 transparent;
         }
-        .chat-list .message.incoming {
+        .chat-list .message {
             margin-top: 1.5rem;
         }
         .chat-list .message .message-content {
@@ -164,15 +164,13 @@
             width: 100%;
             align-items: center;
         }
-        .chat-list .message .text {
-            color: var(--text-color);
-            white-space: pre-wrap;
+        .chat-list .message.outgoing .message-content {
+            flex-direction: row-reverse;
+            justify-content: flex-end;
         }
-        .chat-list .message.error .text {
-            color: #e55865;
-        }
-        .chat-list .message.loading .text {
-            display: none;
+        .chat-list .message.incoming .message-content {
+            flex-direction: row;
+            justify-content: flex-start;
         }
         .chat-list .message .avatar {
             width: 40px;
@@ -180,6 +178,38 @@
             object-fit: cover;
             border-radius: 50%;
             align-self: flex-start;
+        }
+        .chat-list .message.outgoing .avatar {
+            align-self: flex-end;
+        }
+.chat-list .message .text {
+    color: var(--text-color);
+    white-space: pre-wrap; /* 确保文字换行 */
+    max-width: 70%;
+    background: var(--secondary-color);
+    padding: 1rem;
+    border-radius: 10px;
+    overflow-wrap: break-word; /* 强制换行 */
+    word-wrap: break-word; /* 兼容性 */
+    word-break: break-all; /* 强制长字符串换行 */
+}
+.chat-list .message.outgoing .text {
+    margin-left: auto;
+    background: var(--primary-color-1);
+    color: white;
+    max-width: 70%; /* 动态宽度 */
+}
+
+.chat-list .message.incoming .text {
+    margin-right: auto;
+    background: var(--secondary-color);
+    max-width: 70%; /* 动态宽度 */
+}
+        .chat-list .message.error .text {
+            color: #e55865;
+        }
+        .chat-list .message.loading .text {
+            display: none;
         }
         .chat-list .message.loading .avatar {
             animation: rotate 3s linear infinite;
@@ -520,7 +550,7 @@
                         <img class="avatar" src="images/user.jpg" alt="User avatar">
                         <p class="text">${content}</p>
                     ` : `
-                        <img class="avatar" src="images/gemini.svg" alt="Gemini avatar">
+                        <img class="avatar" src="images/gemini.jpg" alt="Gemini avatar">
                         <div class="loading-indicator">
                             <div class="loading-bar"></div>
                             <div class="loading-bar"></div>
@@ -578,9 +608,7 @@
             while (retryCount <= maxRetries) {
                 try {
                     const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
-                    const apiUrl = encodeURIComponent(
-                        'http://api.qingyunke.com/api.php?key=free&appid=0&msg=' + encodeURIComponent(message)
-                    );
+                    const apiUrl = encodeURIComponent('http://api.qingyunke.com/api.php?key=free&appid=0&msg=' + encodeURIComponent(message));
                     const response = await fetch(proxy + apiUrl);
                     const data = await response.json();
                     if (data.result !== 0) throw new Error('API响应异常');
@@ -611,7 +639,6 @@
             setTimeout(() => copyButton.innerText = "content_copy", 1000);
         }
 
-        // 主题切换功能
         toggleThemeButton.addEventListener('click', () => {
             document.body.classList.toggle('light_mode');
             const isLightMode = document.body.classList.contains('light_mode');
@@ -619,7 +646,6 @@
             toggleThemeButton.textContent = isLightMode ? 'dark_mode' : 'light_mode';
         });
 
-        // 加载本地存储的主题
         function loadThemeFromLocalstorage() {
             const savedTheme = localStorage.getItem('themeColor');
             if (savedTheme === 'light_mode') {
@@ -632,7 +658,6 @@
         }
         loadThemeFromLocalstorage();
 
-        // 删除聊天记录功能
         deleteChatButton.addEventListener('click', () => {
             if (chatContainer.children.length === 0) {
                 alert('没有聊天记录可删除');
@@ -668,7 +693,6 @@
         });
     </script>
     <img src="images/user.jpg" style="display:none;" alt="User avatar">
-    <img src="images/gemini.svg" style="display:none;" alt="Gemini avatar">
+    <img src="images/gemini.jpg" style="display:none;" alt="Gemini avatar">
 </body>
 </html>
-我想把上面那个 一横的东西放到 我这个AI网页的hello，there上方
