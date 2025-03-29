@@ -9,6 +9,7 @@
             --user-bg: #e3f2fd;
             --bot-bg: #ffffff;
             --primary: #007bff;
+            --error: #dc3545;
         }
         body {
             max-width: 800px;
@@ -33,6 +34,7 @@
             border-radius: 12px;
             max-width: 80%;
             animation: fadeIn 0.3s ease;
+            word-wrap: break-word;
         }
         .user-message {
             background: var(--user-bg);
@@ -43,10 +45,16 @@
             border: 1px solid #dee2e6;
             margin-right: auto;
         }
+        .error-message {
+            background: #ffe0e0;
+            border-color: var(--error);
+            color: var(--error);
+        }
         #input-box {
             display: flex;
             gap: 10px;
             position: relative;
+            margin-top: 20px;
         }
         #user-input {
             flex: 1;
@@ -69,10 +77,16 @@
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s;
+            min-width: 80px;
         }
         button:hover {
             background: #0056b3;
             transform: translateY(-1px);
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.7;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -83,83 +97,121 @@
             color: #6c757d;
             font-style: italic;
             padding: 10px;
+            text-align: center;
+        }
+        .retry-info {
+            color: #ff6b6b;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center; color: #343a40;">佐罗斯AI聊天助手</h1>
+    <h1 style="text-align: center; color: #343a40; margin-bottom: 30px;">佐罗斯AI聊天助手</h1>
     <div id="chat-box"></div>
     <div class="loading" id="loading">AI正在思考中...</div>
     <div id="input-box">
         <input type="text" id="user-input" placeholder="输入消息..." autocomplete="off">
-        <button onclick="sendMessage()">发送</button>
+        <button onclick="sendMessage()" id="send-btn">发送</button>
     </div>
 
     <script>
-        // 消息处理函数
-        function addMessage(content, isUser) {
+        const MAX_RETRIES = 3;
+        let isProcessing = false;
+
+        function addMessage(content, isUser, isError = false) {
             const chatBox = document.getElementById('chat-box');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-            messageDiv.innerHTML = content.replace(/{br}/g, '<br>'); // 处理换行符
+            
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}${isError ? ' error-message' : ''}`;
+            messageDiv.innerHTML = content.replace(/\n/g, '<br>');
+            
+            if (isError) {
+                const retryInfo = document.createElement('div');
+                retryInfo.className = 'retry-info';
+                retryInfo.textContent = '系统正在自动重试...';
+                messageDiv.appendChild(retryInfo);
+            }
+            
             chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight; // 自动滚动到底部
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // 发送消息函数
         async function sendMessage() {
+            if (isProcessing) return;
+            
             const input = document.getElementById('user-input');
             const message = input.value.trim();
             if (!message) return;
 
-            // 清空输入框
             input.value = '';
             addMessage(message, true);
             
-            // 显示加载状态
             const loading = document.getElementById('loading');
+            const sendBtn = document.getElementById('send-btn');
+            
+            isProcessing = true;
+            sendBtn.disabled = true;
             loading.style.display = 'block';
+            loading.textContent = 'AI正在思考中...';
 
             try {
-                // 使用CORS代理（可替换其他可用代理服务）
-                const proxyList = [
-                    'https://api.allorigins.win/raw?url=',
-                    'https://corsproxy.io/?',
-                    'https://api.codetabs.com/v1/proxy?quest='
-                ];
-
-                // 随机选择一个代理
-                const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
-                const apiUrl = encodeURIComponent(
-                    `http://api.qingyunke.com/api.php?key=free&appid=0&msg=${message}`
-                );
-
-                const response = await fetch(proxy + apiUrl);
-                if (!response.ok) throw new Error('API请求失败');
-                
-                const data = await response.json();
-                if (data.result !== 0) throw new Error('API返回错误');
-
-                addMessage(data.content, false);
+                await fetchWithRetry(message, 0);
             } catch (error) {
-                addMessage(`抱歉，暂时无法获取回复 (错误代码: ${error.message})`, false);
+                addMessage(`请求失败，已尝试${MAX_RETRIES}次重试。请稍后再试。`, false, true);
             } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
                 loading.style.display = 'none';
             }
         }
 
-        // 回车发送功能
+        async function fetchWithRetry(message, retryCount) {
+            const proxyList = [
+                'https://api.allorigins.win/raw?url=',
+                'https://api.codetabs.com/v1/proxy?quest=',
+                'https://cors-anywhere.herokuapp.com/'
+            ];
+
+            try {
+                const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+                const apiUrl = encodeURIComponent(
+                    `http://api.qingyunke.com/api.php?key=free&appid=0&msg=${encodeURIComponent(message)}`
+                );
+
+                const response = await fetch(proxy + apiUrl);
+                if (!response.ok) throw new Error(`HTTP错误 ${response.status}`);
+                
+                const data = await response.json();
+                if (data.result !== 0) throw new Error('API响应错误');
+
+                addMessage(data.content.replace(/菲菲/g, '佐罗斯').replace(/北京清分科技/g, 'Zorrose'), false);
+            } catch (error) {
+                if (retryCount < MAX_RETRIES) {
+                    const loading = document.getElementById('loading');
+                    loading.textContent = `再次思考中...（${retryCount + 1}/${MAX_RETRIES}）`;
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1) * 2));
+                    return fetchWithRetry(message, retryCount + 1);
+                }
+                throw new Error(`最终失败：${error.message}`);
+            }
+        }
+
         document.getElementById('user-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && !e.shiftKey && !isProcessing) {
                 e.preventDefault();
                 sendMessage();
             }
         });
 
-        // 初始问候语
         window.onload = () => {
-            addMessage('你好！我是AI助手，有什么可以帮您？', false);
+            addMessage('您好！我是佐罗斯AI助手，随时为您提供帮助。', false);
+            document.getElementById('user-input').focus();
         }
+
+        document.getElementById('send-btn').addEventListener('click', () => {
+            if (!isProcessing) document.getElementById('user-input').focus();
+        });
     </script>
 </body>
 </html>
