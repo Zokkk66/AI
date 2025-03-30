@@ -601,6 +601,36 @@
         // 错误信息存储
         let errorLogs = [];
 
+        // 对话历史记录
+        let conversationHistory = [];
+
+        // 从localStorage加载对话历史
+        function loadConversationFromLocalStorage() {
+            const savedHistory = localStorage.getItem("conversationHistory");
+            if (savedHistory) {
+                conversationHistory = JSON.parse(savedHistory);
+                // 加载历史记录到聊天界面
+                conversationHistory.forEach(item => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${item.isUser ? 'outgoing' : 'incoming'}`;
+                    messageDiv.innerHTML = `
+                        <div class="message-content">
+                            ${item.isUser ? `
+                                <img class="avatar" src="images/user.jpg" alt="User avatar">
+                                <p class="text">${item.text}</p>
+                            ` : `
+                                <img class="avatar" src="images/gemini.jpg" alt="Gemini avatar">
+                                <p class="text">${item.text}</p>
+                            `}
+                            <span class="icon material-symbols-rounded">content_copy</span>
+                        </div>
+                    `;
+                    chatContainer.appendChild(messageDiv);
+                });
+                chatContainer.scrollTo(0, chatContainer.scrollHeight);
+            }
+        }
+
         function toggleSpeech() {
             isSpeechEnabled = !isSpeechEnabled;
             voiceSwitch.classList.toggle('active', isSpeechEnabled);
@@ -645,14 +675,23 @@
             const message = userInput.value.trim();
             if (!message || isProcessing) return;
 
-            // 检查是否是“测试051”消息
-            if (message === "测试051") {
+            // 检查是否是“测试”消息
+            if (message === "测试") {
                 openTestPanel();
                 userInput.value = '';
                 return;
             }
 
             userInput.value = '';
+            
+            // 将用户消息添加到历史记录
+            conversationHistory.push({
+                text: message,
+                isUser: true,
+                timestamp: new Date().toLocaleString()
+            });
+            saveConversationToLocalStorage();
+
             const outgoingMessage = createMessageElement(message, true);
             chatContainer.appendChild(outgoingMessage);
             chatContainer.scrollTo(0, chatContainer.scrollHeight);
@@ -681,6 +720,14 @@
                     speakText(reply);
                     loadingIndicator.style.display = 'none';
                     isProcessing = false;
+
+                    // 将AI回答添加到历史记录
+                    conversationHistory.push({
+                        text: reply,
+                        isUser: false,
+                        timestamp: new Date().toLocaleString()
+                    });
+                    saveConversationToLocalStorage();
                 }, 800);
                 return;
             }
@@ -690,16 +737,36 @@
 
             while (retryCount <= maxRetries) {
                 try {
-                    const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
-                    const apiUrl = encodeURIComponent('http://api.qingyunke.com/api.php?key=free&appid=0&msg=' + encodeURIComponent(message));
-                    const response = await fetch(proxy + apiUrl);
-                    const data = await response.json();
-                    if (data.result !== 0) throw new Error('API响应异常');
+                    // 构建上下文字符串（只保留最近5条记录）
+                    const context = conversationHistory
+                        .slice(-5)
+                        .map(item => (item.isUser ? "User: " : "AI: ") + item.text)
+                        .join("\n");
 
-                    finalReply = data.content
-                        .replace(/{br}/g, '\n')
-                        .replace(/菲菲/g, '佐罗斯')
-                        .replace(/北京彩讯科技/g, '佐罗斯团队');
+                    // 使用OpenAI API（替换为你的API密钥）
+                    const OPENAI_API_KEY = 'your_openai_api_key'; // 替换为你的API密钥
+                    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${OPENAI_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [
+                                { role: "system", content: "You are a helpful assistant." },
+                                ...conversationHistory.map(item => ({
+                                    role: item.isUser ? "user" : "assistant",
+                                    content: item.text
+                                }))
+                            ]
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) throw new Error(data.error.message || 'API响应异常');
+
+                    finalReply = data.choices[0].message.content;
                     break;
                 } catch (error) {
                     retryCount++;
@@ -718,6 +785,14 @@
             speakText(finalReply);
             loadingIndicator.style.display = 'none';
             isProcessing = false;
+
+            // 将AI回答添加到历史记录
+            conversationHistory.push({
+                text: finalReply,
+                isUser: false,
+                timestamp: new Date().toLocaleString()
+            });
+            saveConversationToLocalStorage();
         }
 
         function copyMessage(copyButton) {
@@ -749,7 +824,6 @@
         // 删除聊天记录功能
         deleteChatButton.addEventListener('click', () => {
             if (chatContainer.children.length === 0) {
-                // 使用自定义弹窗而不是系统弹窗
                 modalTitle.textContent = 'Information';
                 modalContent.textContent = 'There is no chat record to delete.';
                 deleteConfirmationModal.classList.add('active');
@@ -770,6 +844,8 @@
 
         function confirmDelete() {
             chatContainer.innerHTML = '';
+            conversationHistory = [];
+            localStorage.removeItem('conversationHistory');
             closeModal();
         }
 
@@ -832,6 +908,11 @@
             logThemeStatus();
         }, 60000); // 每分钟记录一次
 
+        // 保存对话历史到localStorage
+        function saveConversationToLocalStorage() {
+            localStorage.setItem("conversationHistory", JSON.stringify(conversationHistory));
+        }
+
         typingForm.addEventListener('submit', (e) => {
             e.preventDefault();
             sendMessage();
@@ -844,6 +925,9 @@
                 sendMessage();
             });
         });
+
+        // 页面加载时加载对话历史
+        window.addEventListener('load', loadConversationFromLocalStorage);
     </script>
 </body>
 </html>
