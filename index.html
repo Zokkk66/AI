@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zorrose-bot</title>
     <style>
-        /* 保持原有样式不变 */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
         * {
             margin: 0;
@@ -494,6 +493,29 @@
             max-height: 300px;
             overflow-y: auto;
         }
+
+        /* 调试面板样式 */
+        #debug-panel {
+            display: none;
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            background: var(--primary-color);
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            z-index: 1001;
+            color: var(--text-color);
+        }
+        .performance-metrics {
+            margin-bottom: 1rem;
+        }
+        .performance-metrics div {
+            margin: 0.5rem 0;
+        }
+        #fps {
+            color: var(--primary-color-1);
+        }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
@@ -532,7 +554,9 @@
                 <div class="action-buttons">
                     <span id="theme-toggle-button" class="icon material-symbols-rounded">light_mode</span>
                     <span id="voice-switch" class="icon material-symbols-rounded" onclick="toggleSpeech()">volume_up</span>
+                    <span id="voice-control" class="icon material-symbols-rounded" onclick="toggleVoiceControl()">pause</span>
                     <span id="delete-chat-button" class="icon material-symbols-rounded">delete</span>
+                    <span id="debug-toggle" class="icon material-symbols-rounded" onclick="toggleDebugPanel()">bug_report</span>
                 </div>
             </form>
             <p class="disclaimer-text">
@@ -560,133 +584,103 @@
         <button onclick="closeTestPanel()">关闭</button>
     </div>
 
+    <!-- 调试面板 -->
+    <div id="debug-panel">
+        <h3>系统监控</h3>
+        <div class="performance-metrics">
+            <div>CPU: <span id="cpu-usage">0%</span></div>
+            <div>Memory: <span id="memory-usage">0 MB</span></div>
+            <div>FPS: <span id="fps">0</span></div>
+        </div>
+        <h3>错误日志</h3>
+        <div id="error-list-debug"></div>
+        <button onclick="toggleDebugPanel()">关闭</button>
+    </div>
+
     <script>
-        // DOM元素
-        const chatContainer = document.querySelector(".chat-list");
+        // 页面切换逻辑
+        const pageTitle = document.getElementById('pageTitle');
+        const chatPage = document.getElementById('chatPage');
+
+        // 点击标题切换到新页面
+        pageTitle.addEventListener('click', () => {
+            history.pushState({ page: 'one_a' }, 'One A Page', 'one_a.html');
+            chatPage.classList.remove('active');
+            window.location.href = 'one_a.html';
+        });
+
+        // 处理浏览器返回按钮
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.page === 'one_a') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // 初始化变量
         const typingForm = document.querySelector(".typing-form");
+        const chatContainer = document.querySelector(".chat-list");
+        const suggestions = document.querySelectorAll(".suggestion");
         const toggleThemeButton = document.querySelector("#theme-toggle-button");
         const deleteChatButton = document.querySelector("#delete-chat-button");
         const voiceSwitch = document.getElementById('voice-switch');
+        const voiceControl = document.getElementById('voice-control');
         const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalContent = document.getElementById('modal-content');
+        const debugPanel = document.getElementById('debug-panel');
+        const cpuUsage = document.getElementById('cpu-usage');
+        const memoryUsage = document.getElementById('memory-usage');
+        const fpsCounter = document.getElementById('fps');
+        const errorListDebug = document.getElementById('error-list-debug');
 
-        // 状态变量
         let isProcessing = false;
         let isSpeechEnabled = true;
-        let speechRecognition = null;
-        let errorLogs = [];
+        let isSpeechPaused = false;
+        let speechRecognition;
+        const maxRetries = 3;
+        const proxyList = ['https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+        let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
+        let lastSpeechEnd = 0;
+        const speechUtterance = new SpeechSynthesisUtterance();
+        let fps = 0;
+        const frameTimes = [];
 
-        // 页面加载时初始化
-        window.addEventListener('load', () => {
-            setupVoiceRecognition();   // 设置语音识别
-            loadThemeFromLocalstorage(); // 加载主题
-        });
+        // 初始化语音控制
+        speechUtterance.onend = () => {
+            voiceControl.textContent = 'pause';
+            isSpeechPaused = false;
+        };
+        speechUtterance.onerror = (event) => {
+            console.error('语音合成错误:', event.error);
+        };
 
-        // 设置语音识别
-        function setupVoiceRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                speechRecognition = new webkitSpeechRecognition();
-                speechRecognition.continuous = true;
-                speechRecognition.interimResults = true;
-                speechRecognition.lang = 'zh-CN';
-                
-                speechRecognition.onstart = () => {
-                    console.log('语音识别已启动');
-                };
-                
-                speechRecognition.onresult = (event) => {
-                    const transcript = event.results[event.resultIndex][0].transcript;
-                    if (event.results[event.resultIndex].isFinal) {
-                        // 如果是最终结果，发送消息
-                        document.querySelector('.typing-input').value = transcript;
-                        sendMessage();
-                    }
-                };
-                
-                speechRecognition.onerror = (event) => {
-                    console.error('语音识别错误:', event.error);
-                    logError(`语音识别错误: ${event.error}`);
-                };
-                
-                speechRecognition.onend = () => {
-                    console.log('语音识别已结束');
-                };
+        // 语音控制函数
+        function toggleVoiceControl() {
+            if (isSpeechPaused) {
+                speechSynthesis.resume();
+                voiceControl.textContent = 'pause';
+                isSpeechPaused = false;
             } else {
-                console.error('您的浏览器不支持语音识别');
-                logError('您的浏览器不支持语音识别');
+                speechSynthesis.pause();
+                voiceControl.textContent = 'play_arrow';
+                isSpeechPaused = true;
             }
         }
 
-        // 切换语音功能
-        function toggleSpeech() {
-            isSpeechEnabled = !isSpeechEnabled;
-            voiceSwitch.classList.toggle('active', isSpeechEnabled);
-            voiceSwitch.textContent = isSpeechEnabled ? 'volume_up' : 'volume_off';
-            
-            if (isSpeechEnabled && speechRecognition) {
-                speechRecognition.start();
-            } else if (speechRecognition) {
-                speechRecognition.stop();
+        // 增强型语音合成
+        function speakText(text) {
+            if (isSpeechEnabled && 'speechSynthesis' in window) {
+                const now = Date.now();
+                if (now - lastSpeechEnd < 500) {
+                    speechSynthesis.cancel();
+                }
+                speechUtterance.text = text.replace(/[（ $].+?[）$ ]/g, '');
+                speechUtterance.lang = 'zh-CN';
+                speechUtterance.rate = 1;
+                speechUtterance.pitch = 1;
+                speechSynthesis.speak(speechUtterance);
+                lastSpeechEnd = now;
             }
-        }
-
-        // 发送消息
-        async function sendMessage() {
-            const userInput = document.querySelector('.typing-input');
-            const message = userInput.value.trim();
-            if (!message || isProcessing) return;
-
-            userInput.value = '';
-            
-            // 创建用户消息元素
-            const outgoingMessage = createMessageElement(message, true);
-            chatContainer.appendChild(outgoingMessage);
-            chatContainer.scrollTo(0, chatContainer.scrollHeight);
-
-            // 创建AI消息元素
-            const incomingMessage = createMessageElement('', false);
-            chatContainer.appendChild(incomingMessage);
-            chatContainer.scrollTo(0, chatContainer.scrollHeight);
-
-            const textElement = incomingMessage.querySelector('.text');
-            const loadingIndicator = incomingMessage.querySelector('.loading-indicator');
-            loadingIndicator.style.display = 'flex';
-            isProcessing = true;
-
-            // 模拟API调用
-            try {
-                const aiResponse = await getAIResponse(message);
-                textElement.textContent = aiResponse;
-                speakText(aiResponse);
-            } catch (error) {
-                textElement.textContent = `服务暂时不可用，请稍后再试 (错误代码: ${error.message})`;
-                logError(`AI响应失败: ${error.message}`);
-            }
-
-            loadingIndicator.style.display = 'none';
-            isProcessing = false;
-        }
-
-        // 获取AI响应
-        async function getAIResponse(message) {
-            // 模拟API调用
-            const quickResponses = {
-                '你好': '你好！有什么可以帮您？',
-                '你好呀': '你好呀～欢迎咨询佐罗斯智能服务',
-                '佐罗斯': '这里是佐罗斯官方智能助手，请提出您的需求',
-                '你是谁': '我是佐罗斯智能助手，为您提供24小时服务'
-            };
-
-            const trimmedMessage = message.replace(/\s+/g, '');
-            if (quickResponses[trimmedMessage]) {
-                return quickResponses[trimmedMessage];
-            }
-
-            // 模拟API延迟
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            return '我已收到您的消息，正在处理中...';
         }
 
         // 创建消息元素
@@ -713,6 +707,90 @@
             return messageDiv;
         }
 
+        // 发送消息处理
+        async function sendMessage() {
+            const userInput = typingForm.querySelector('.typing-input');
+            const message = userInput.value.trim();
+            if (!message || isProcessing) return;
+
+            if (message === "测试") {
+                openTestPanel();
+                userInput.value = '';
+                return;
+            }
+
+            userInput.value = '';
+            const outgoingMessage = createMessageElement(message, true);
+            chatContainer.appendChild(outgoingMessage);
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
+            conversationHistory.push({ role: 'user', content: message });
+
+            const incomingMessage = createMessageElement('', false);
+            chatContainer.appendChild(incomingMessage);
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
+
+            const textElement = incomingMessage.querySelector('.text');
+            const loadingIndicator = incomingMessage.querySelector('.loading-indicator');
+            loadingIndicator.style.display = 'flex';
+            isProcessing = true;
+
+            const quickResponses = {
+                '你好': '你好！有什么可以帮您？',
+                '你好呀': '你好呀～欢迎咨询佐罗斯智能服务',
+                '佐罗斯': '这里是佐罗斯官方智能助手，请提出您的需求',
+                '你是谁': '我是佐罗斯智能助手，为您提供24小时服务'
+            };
+
+            const trimmedMessage = message.replace(/\s+/g, '');
+            if (quickResponses[trimmedMessage]) {
+                setTimeout(() => {
+                    const reply = quickResponses[trimmedMessage];
+                    textElement.textContent = reply;
+                    speakText(reply);
+                    conversationHistory.push({ role: 'assistant', content: reply });
+                    localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+                    loadingIndicator.style.display = 'none';
+                    isProcessing = false;
+                }, 800);
+                return;
+            }
+
+            let retryCount = 0;
+            let finalReply = '';
+
+            while (retryCount <= maxRetries) {
+                try {
+                    const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+                    const apiUrl = encodeURIComponent('http://api.qingyunke.com/api.php?key=free&appid=0&msg=' + encodeURIComponent(message));
+                    const response = await fetch(proxy + apiUrl);
+                    const data = await response.json();
+                    if (data.result !== 0) throw new Error('API响应异常');
+
+                    finalReply = data.content
+                        .replace(/{br}/g, '\n')
+                        .replace(/菲菲/g, '佐罗斯')
+                        .replace(/北京彩讯科技/g, '佐罗斯团队');
+                    break;
+                } catch (error) {
+                    retryCount++;
+                    if (retryCount > maxRetries) {
+                        finalReply = `服务暂时不可用，请稍后再试 (错误代码: ${error.message})`;
+                        errorLogs.push({
+                            timestamp: new Date().toLocaleString(),
+                            message: `服务调用失败: ${error.message}`
+                        });
+                    }
+                }
+            }
+
+            textElement.textContent = finalReply;
+            speakText(finalReply);
+            conversationHistory.push({ role: 'assistant', content: finalReply });
+            localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+            loadingIndicator.style.display = 'none';
+            isProcessing = false;
+        }
+
         // 复制消息
         function copyMessage(copyButton) {
             const messageText = copyButton.parentElement.querySelector('.text').innerText;
@@ -721,7 +799,7 @@
             setTimeout(() => copyButton.innerText = "content_copy", 1000);
         }
 
-        // 切换主题
+        // 主题切换
         toggleThemeButton.addEventListener('click', () => {
             document.body.classList.toggle('light_mode');
             const isLightMode = document.body.classList.contains('light_mode');
@@ -729,7 +807,7 @@
             toggleThemeButton.textContent = isLightMode ? 'dark_mode' : 'light_mode';
         });
 
-        // 加载主题
+        // 加载主题设置
         function loadThemeFromLocalstorage() {
             const savedTheme = localStorage.getItem('themeColor');
             if (savedTheme === 'light_mode') {
@@ -740,11 +818,14 @@
                 toggleThemeButton.textContent = 'light_mode';
             }
         }
+        loadThemeFromLocalstorage();
 
         // 删除聊天记录
         deleteChatButton.addEventListener('click', () => {
             if (chatContainer.children.length === 0) {
-                alert('没有聊天记录可删除');
+                modalTitle.textContent = 'Information';
+                modalContent.textContent = 'There is no chat record to delete.';
+                deleteConfirmationModal.classList.add('active');
                 return;
             }
             openModal();
@@ -762,20 +843,12 @@
 
         function confirmDelete() {
             chatContainer.innerHTML = '';
+            conversationHistory = [];
+            localStorage.removeItem('conversationHistory');
             closeModal();
         }
 
-        // 语音合成
-        function speakText(text) {
-            if (isSpeechEnabled && 'speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'zh-CN';
-                utterance.rate = 1;
-                speechSynthesis.speak(utterance);
-            }
-        }
-
-        // 调试面板相关功能
+        // 测试面板
         function openTestPanel() {
             document.getElementById('test-panel').style.display = 'block';
             updateErrorList();
@@ -802,46 +875,98 @@
             });
         }
 
-        // 记录错误
-        function logError(message) {
-            errorLogs.push({
-                timestamp: new Date().toLocaleString(),
-                message: message
-            });
-            updateErrorList();
+        // 调试面板
+        function toggleDebugPanel() {
+            debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+            updateDebugMetrics();
         }
 
-        // 监听表单提交
+        function updateDebugMetrics() {
+            // CPU使用率（模拟数据）
+            cpuUsage.textContent = Math.floor(Math.random() * 30) + '%';
+
+            // 内存使用
+            const memory = process.memoryUsage();
+            memoryUsage.textContent = `${(memory.heapUsed / 1024 / 1024).toFixed(2)} MB`;
+
+            // FPS计算
+            const now = Date.now();
+            frameTimes.push(now);
+            if (frameTimes.length > 100) frameTimes.shift();
+            const elapsed = now - frameTimes[0];
+            if (elapsed > 0) {
+                fps = Math.round((frameTimes.length / elapsed) * 1000);
+            }
+            fpsCounter.textContent = fps;
+
+            // 错误日志
+            errorListDebug.innerHTML = errorLogs.map(error => `
+                <div style="margin: 5px 0; padding: 5px; border: 1px solid #444; border-radius: 3px;">
+                    ${error.timestamp}: ${error.message}
+                </div>
+            `).join('');
+
+            requestAnimationFrame(updateDebugMetrics);
+        }
+
+        // 全局错误处理
+        let errorLogs = JSON.parse(localStorage.getItem('errorLogs')) || [];
+        window.addEventListener('error', (event) => {
+            errorLogs.push({
+                timestamp: new Date().toLocaleString(),
+                message: `全局错误: ${event.message}`
+            });
+            localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
+        });
+
+        // 定期保存错误日志
+        setInterval(() => {
+            localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
+        }, 60000);
+
+        // 加载历史对话
+        function loadConversationHistory() {
+            conversationHistory.forEach((message, index) => {
+                const messageElement = createMessageElement(message.content, message.role === 'user');
+                chatContainer.appendChild(messageElement);
+                if (message.role === 'assistant') {
+                    const textElement = messageElement.querySelector('.text');
+                    textElement.textContent = message.content;
+                    const loadingIndicator = messageElement.querySelector('.loading-indicator');
+                    loadingIndicator.style.display = 'none';
+                }
+            });
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
+        }
+        loadConversationHistory();
+
+        // 语音控制
+        function toggleSpeech() {
+            isSpeechEnabled = !isSpeechEnabled;
+            voiceSwitch.classList.toggle('active', isSpeechEnabled);
+            voiceSwitch.textContent = isSpeechEnabled ? 'volume_up' : 'volume_off';
+            if (!isSpeechEnabled) {
+                speechSynthesis.cancel();
+            }
+        }
+
+        // 表单提交
         typingForm.addEventListener('submit', (e) => {
             e.preventDefault();
             sendMessage();
         });
 
-        // 监听建议点击
-        document.querySelectorAll('.suggestion').forEach(suggestion => {
+        // 建议项点击
+        suggestions.forEach(suggestion => {
             suggestion.addEventListener('click', () => {
                 const message = suggestion.querySelector('.text').innerText;
-                document.querySelector('.typing-input').value = message;
+                typingForm.querySelector('.typing-input').value = message;
                 sendMessage();
             });
         });
 
-        // 捕获所有可能的错误并记录
-        window.addEventListener('error', (event) => {
-            logError(`全局错误: ${event.message}`);
-        });
-
-        // 测试面板快捷键
-        document.addEventListener('keydown', (event) => {
-            if (event.ctrlKey && event.key === 't') {
-                const testPanel = document.getElementById('test-panel');
-                if (testPanel.style.display === 'block') {
-                    closeTestPanel();
-                } else {
-                    openTestPanel();
-                }
-            }
-        });
+        // 初始化调试面板
+        requestAnimationFrame(updateDebugMetrics);
     </script>
 </body>
 </html>
