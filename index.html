@@ -93,6 +93,7 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+            animation: gradient-flow 12s ease-in-out infinite alternate;
         }
         @keyframes gradient-flow {
             0% {
@@ -475,6 +476,23 @@
                 min-width: 100px;
             }
         }
+
+        /* 测试面板样式 */
+        #test-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            z-index: 1000;
+        }
+        #error-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
@@ -534,6 +552,13 @@
         </div>
     </div>
 
+    <!-- 测试面板 -->
+    <div id="test-panel">
+        <h3>测试面板</h3>
+        <div id="error-list"></div>
+        <button onclick="closeTestPanel()">关闭</button>
+    </div>
+
     <script>
         // 页面切换逻辑
         const pageTitle = document.getElementById('pageTitle');
@@ -572,6 +597,9 @@
         let isSpeechEnabled = true;
         const maxRetries = 3;
         const proxyList = ['https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+
+        // 错误信息存储
+        let errorLogs = [];
 
         function toggleSpeech() {
             isSpeechEnabled = !isSpeechEnabled;
@@ -616,6 +644,13 @@
             const userInput = typingForm.querySelector('.typing-input');
             const message = userInput.value.trim();
             if (!message || isProcessing) return;
+
+            // 检查是否是“测试051”消息
+            if (message === "测试051") {
+                openTestPanel();
+                userInput.value = '';
+                return;
+            }
 
             userInput.value = '';
             const outgoingMessage = createMessageElement(message, true);
@@ -670,6 +705,11 @@
                     retryCount++;
                     if (retryCount > maxRetries) {
                         finalReply = `服务暂时不可用，请稍后再试 (错误代码: ${error.message})`;
+                        // 将错误信息添加到日志
+                        errorLogs.push({
+                            timestamp: new Date().toLocaleString(),
+                            message: `服务调用失败: ${error.message}`
+                        });
                     }
                 }
             }
@@ -732,6 +772,65 @@
             chatContainer.innerHTML = '';
             closeModal();
         }
+
+        // 打开测试面板
+        function openTestPanel() {
+            document.getElementById('test-panel').style.display = 'block';
+            updateErrorList();
+        }
+
+        // 关闭测试面板
+        function closeTestPanel() {
+            document.getElementById('test-panel').style.display = 'none';
+        }
+
+        // 更新错误列表
+        function updateErrorList() {
+            const errorList = document.getElementById('error-list');
+            errorList.innerHTML = '';
+            errorLogs.forEach((error, index) => {
+                const errorItem = document.createElement('div');
+                errorItem.style.margin = '10px 0';
+                errorItem.style.padding = '10px';
+                errorItem.style.border = '1px solid #ddd';
+                errorItem.style.borderRadius = '5px';
+                errorItem.innerHTML = `
+                    <div><strong>错误 ${index + 1}</strong> - ${error.timestamp}</div>
+                    <div>${error.message}</div>
+                `;
+                errorList.appendChild(errorItem);
+            });
+        }
+
+        // 捕获所有可能的错误并记录
+        window.addEventListener('error', (event) => {
+            errorLogs.push({
+                timestamp: new Date().toLocaleString(),
+                message: `全局错误: ${event.message}`
+            });
+        });
+
+        // 记录缓存状态
+        function logCacheStatus() {
+            errorLogs.push({
+                timestamp: new Date().toLocaleString(),
+                message: `缓存状态: ${localStorage.length} 项缓存`
+            });
+        }
+
+        // 记录主题模式
+        function logThemeStatus() {
+            errorLogs.push({
+                timestamp: new Date().toLocaleString(),
+                message: `主题模式: ${document.body.classList.contains('light_mode') ? '浅色模式' : '深色模式'}`
+            });
+        }
+
+        // 定期记录调试信息
+        setInterval(() => {
+            logCacheStatus();
+            logThemeStatus();
+        }, 60000); // 每分钟记录一次
 
         typingForm.addEventListener('submit', (e) => {
             e.preventDefault();
