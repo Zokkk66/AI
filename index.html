@@ -493,29 +493,6 @@
             max-height: 300px;
             overflow-y: auto;
         }
-
-        /* 调试面板样式 */
-        #debug-panel {
-            display: none;
-            position: fixed;
-            top: 50px;
-            right: 10px;
-            background: var(--primary-color);
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            z-index: 1001;
-            color: var(--text-color);
-        }
-        .performance-metrics {
-            margin-bottom: 1rem;
-        }
-        .performance-metrics div {
-            margin: 0.5rem 0;
-        }
-        #fps {
-            color: var(--primary-color-1);
-        }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
@@ -555,7 +532,6 @@
                     <span id="theme-toggle-button" class="icon material-symbols-rounded">light_mode</span>
                     <span id="voice-switch" class="icon material-symbols-rounded" onclick="toggleSpeech()">volume_up</span>
                     <span id="delete-chat-button" class="icon material-symbols-rounded">delete</span>
-                    <span id="debug-toggle" class="icon material-symbols-rounded" onclick="toggleDebugPanel()">bug_report</span>
                 </div>
             </form>
             <p class="disclaimer-text">
@@ -581,19 +557,6 @@
         <h3>测试面板</h3>
         <div id="error-list"></div>
         <button onclick="closeTestPanel()">关闭</button>
-    </div>
-
-    <!-- 调试面板 -->
-    <div id="debug-panel">
-        <h3>系统监控</h3>
-        <div class="performance-metrics">
-            <div>CPU: <span id="cpu-usage">0%</span></div>
-            <div>Memory: <span id="memory-usage">0 MB</span></div>
-            <div>FPS: <span id="fps">0</span></div>
-        </div>
-        <h3>错误日志</h3>
-        <div id="error-list-debug"></div>
-        <button onclick="toggleDebugPanel()">关闭</button>
     </div>
 
     <script>
@@ -625,35 +588,22 @@
         const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalContent = document.getElementById('modal-content');
-        const debugPanel = document.getElementById('debug-panel');
-        const cpuUsage = document.getElementById('cpu-usage');
-        const memoryUsage = document.getElementById('memory-usage');
-        const fpsCounter = document.getElementById('fps');
-        const errorListDebug = document.getElementById('error-list-debug');
 
         let isProcessing = false;
         let isSpeechEnabled = true;
         const maxRetries = 3;
         const proxyList = ['https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
         let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
-        let lastSpeechEnd = 0;
-        const speechUtterance = new SpeechSynthesisUtterance();
-        let fps = 0;
-        const frameTimes = [];
+        let errorLogs = [];
 
         // 语音合成
         function speakText(text) {
             if (isSpeechEnabled && 'speechSynthesis' in window) {
-                const now = Date.now();
-                if (now - lastSpeechEnd < 500) {
-                    speechSynthesis.cancel();
-                }
-                speechUtterance.text = text.replace(/[（ $].+?[）$ ]/g, '');
-                speechUtterance.lang = 'zh-CN';
-                speechUtterance.rate = 1;
-                speechUtterance.pitch = 1;
-                speechSynthesis.speak(speechUtterance);
-                lastSpeechEnd = now;
+                const utterance = new SpeechSynthesisUtterance();
+                utterance.text = text.replace(/[（ $].+?[）$ ]/g, '');
+                utterance.lang = 'zh-CN';
+                utterance.rate = 1;
+                speechSynthesis.speak(utterance);
             }
         }
 
@@ -687,6 +637,7 @@
             const message = userInput.value.trim();
             if (!message || isProcessing) return;
 
+            // 打开测试面板
             if (message === "测试") {
                 openTestPanel();
                 userInput.value = '';
@@ -849,54 +800,13 @@
             });
         }
 
-        // 调试面板
-        function toggleDebugPanel() {
-            debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
-            updateDebugMetrics();
-        }
-
-        function updateDebugMetrics() {
-            // CPU使用率（模拟数据）
-            cpuUsage.textContent = Math.floor(Math.random() * 30) + '%';
-
-            // 内存使用
-            const memory = process.memoryUsage();
-            memoryUsage.textContent = `${(memory.heapUsed / 1024 / 1024).toFixed(2)} MB`;
-
-            // FPS计算
-            const now = Date.now();
-            frameTimes.push(now);
-            if (frameTimes.length > 100) frameTimes.shift();
-            const elapsed = now - frameTimes[0];
-            if (elapsed > 0) {
-                fps = Math.round((frameTimes.length / elapsed) * 1000);
-            }
-            fpsCounter.textContent = fps;
-
-            // 错误日志
-            errorListDebug.innerHTML = errorLogs.map(error => `
-                <div style="margin: 5px 0; padding: 5px; border: 1px solid #444; border-radius: 3px;">
-                    ${error.timestamp}: ${error.message}
-                </div>
-            `).join('');
-
-            requestAnimationFrame(updateDebugMetrics);
-        }
-
         // 全局错误处理
-        let errorLogs = JSON.parse(localStorage.getItem('errorLogs')) || [];
         window.addEventListener('error', (event) => {
             errorLogs.push({
                 timestamp: new Date().toLocaleString(),
                 message: `全局错误: ${event.message}`
             });
-            localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
         });
-
-        // 定期保存错误日志
-        setInterval(() => {
-            localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
-        }, 60000);
 
         // 加载历史对话
         function loadConversationHistory() {
@@ -938,9 +848,6 @@
                 sendMessage();
             });
         });
-
-        // 初始化调试面板
-        requestAnimationFrame(updateDebugMetrics);
     </script>
 </body>
 </html>
