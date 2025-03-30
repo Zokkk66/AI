@@ -493,6 +493,29 @@
             max-height: 300px;
             overflow-y: auto;
         }
+
+        /* 调试面板样式 */
+        #debug-panel {
+            display: none;
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            background: var(--primary-color);
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            z-index: 1001;
+            color: var(--text-color);
+        }
+        .performance-metrics {
+            margin-bottom: 1rem;
+        }
+        .performance-metrics div {
+            margin: 0.5rem 0;
+        }
+        #fps {
+            color: var(--primary-color-1);
+        }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
@@ -532,6 +555,7 @@
                     <span id="theme-toggle-button" class="icon material-symbols-rounded">light_mode</span>
                     <span id="voice-switch" class="icon material-symbols-rounded" onclick="toggleSpeech()">volume_up</span>
                     <span id="delete-chat-button" class="icon material-symbols-rounded">delete</span>
+                    <span id="debug-toggle" class="icon material-symbols-rounded" onclick="toggleDebugPanel()">bug_report</span>
                 </div>
             </form>
             <p class="disclaimer-text">
@@ -559,6 +583,19 @@
         <button onclick="closeTestPanel()">关闭</button>
     </div>
 
+    <!-- 调试面板 -->
+    <div id="debug-panel">
+        <h3>系统监控</h3>
+        <div class="performance-metrics">
+            <div>CPU: <span id="cpu-usage">0%</span></div>
+            <div>Memory: <span id="memory-usage">0 MB</span></div>
+            <div>FPS: <span id="fps">0</span></div>
+        </div>
+        <h3>错误日志</h3>
+        <div id="error-list-debug"></div>
+        <button onclick="toggleDebugPanel()">关闭</button>
+    </div>
+
     <script>
         // 页面切换逻辑
         const pageTitle = document.getElementById('pageTitle');
@@ -566,23 +603,19 @@
 
         // 点击标题切换到新页面
         pageTitle.addEventListener('click', () => {
-            // 添加浏览器历史记录
             history.pushState({ page: 'one_a' }, 'One A Page', 'one_a.html');
-            // 切换页面
             chatPage.classList.remove('active');
-            // 加载新页面
             window.location.href = 'one_a.html';
         });
 
         // 处理浏览器返回按钮
         window.addEventListener('popstate', (event) => {
             if (event.state && event.state.page === 'one_a') {
-                // 如果从one_a页面返回，重新加载主页面
                 window.location.href = 'index.html';
             }
         });
 
-        // 其他功能代码保持不变
+        // 初始化变量
         const typingForm = document.querySelector(".typing-form");
         const chatContainer = document.querySelector(".chat-list");
         const suggestions = document.querySelectorAll(".suggestion");
@@ -592,34 +625,39 @@
         const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalContent = document.getElementById('modal-content');
+        const debugPanel = document.getElementById('debug-panel');
+        const cpuUsage = document.getElementById('cpu-usage');
+        const memoryUsage = document.getElementById('memory-usage');
+        const fpsCounter = document.getElementById('fps');
+        const errorListDebug = document.getElementById('error-list-debug');
 
         let isProcessing = false;
         let isSpeechEnabled = true;
         const maxRetries = 3;
         const proxyList = ['https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+        let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
+        let lastSpeechEnd = 0;
+        const speechUtterance = new SpeechSynthesisUtterance();
+        let fps = 0;
+        const frameTimes = [];
 
-        // 错误信息存储
-        let errorLogs = [];
-
-        // 对话历史存储
-        let chatHistory = [];
-
-        function toggleSpeech() {
-            isSpeechEnabled = !isSpeechEnabled;
-            voiceSwitch.classList.toggle('active', isSpeechEnabled);
-            voiceSwitch.textContent = isSpeechEnabled ? 'volume_up' : 'volume_off';
-        }
-
+        // 语音合成
         function speakText(text) {
             if (isSpeechEnabled && 'speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance();
-                utterance.text = text.replace(/[（ $].+?[）$ ]/g, '');
-                utterance.lang = 'zh-CN';
-                utterance.rate = 1;
-                speechSynthesis.speak(utterance);
+                const now = Date.now();
+                if (now - lastSpeechEnd < 500) {
+                    speechSynthesis.cancel();
+                }
+                speechUtterance.text = text.replace(/[（ $].+?[）$ ]/g, '');
+                speechUtterance.lang = 'zh-CN';
+                speechUtterance.rate = 1;
+                speechUtterance.pitch = 1;
+                speechSynthesis.speak(speechUtterance);
+                lastSpeechEnd = now;
             }
         }
 
+        // 创建消息元素
         function createMessageElement(content, isUser) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'outgoing' : 'incoming'}`;
@@ -643,12 +681,12 @@
             return messageDiv;
         }
 
+        // 发送消息处理
         async function sendMessage() {
             const userInput = typingForm.querySelector('.typing-input');
             const message = userInput.value.trim();
             if (!message || isProcessing) return;
 
-            // 检查是否是“测试”消息
             if (message === "测试") {
                 openTestPanel();
                 userInput.value = '';
@@ -659,6 +697,7 @@
             const outgoingMessage = createMessageElement(message, true);
             chatContainer.appendChild(outgoingMessage);
             chatContainer.scrollTo(0, chatContainer.scrollHeight);
+            conversationHistory.push({ role: 'user', content: message });
 
             const incomingMessage = createMessageElement('', false);
             chatContainer.appendChild(incomingMessage);
@@ -682,9 +721,10 @@
                     const reply = quickResponses[trimmedMessage];
                     textElement.textContent = reply;
                     speakText(reply);
+                    conversationHistory.push({ role: 'assistant', content: reply });
+                    localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
                     loadingIndicator.style.display = 'none';
                     isProcessing = false;
-                    saveChatHistory(message, reply);
                 }, 800);
                 return;
             }
@@ -709,7 +749,6 @@
                     retryCount++;
                     if (retryCount > maxRetries) {
                         finalReply = `服务暂时不可用，请稍后再试 (错误代码: ${error.message})`;
-                        // 将错误信息添加到日志
                         errorLogs.push({
                             timestamp: new Date().toLocaleString(),
                             message: `服务调用失败: ${error.message}`
@@ -720,11 +759,13 @@
 
             textElement.textContent = finalReply;
             speakText(finalReply);
+            conversationHistory.push({ role: 'assistant', content: finalReply });
+            localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
             loadingIndicator.style.display = 'none';
             isProcessing = false;
-            saveChatHistory(message, finalReply);
         }
 
+        // 复制消息
         function copyMessage(copyButton) {
             const messageText = copyButton.parentElement.querySelector('.text').innerText;
             navigator.clipboard.writeText(messageText);
@@ -732,6 +773,7 @@
             setTimeout(() => copyButton.innerText = "content_copy", 1000);
         }
 
+        // 主题切换
         toggleThemeButton.addEventListener('click', () => {
             document.body.classList.toggle('light_mode');
             const isLightMode = document.body.classList.contains('light_mode');
@@ -739,6 +781,7 @@
             toggleThemeButton.textContent = isLightMode ? 'dark_mode' : 'light_mode';
         });
 
+        // 加载主题设置
         function loadThemeFromLocalstorage() {
             const savedTheme = localStorage.getItem('themeColor');
             if (savedTheme === 'light_mode') {
@@ -751,10 +794,9 @@
         }
         loadThemeFromLocalstorage();
 
-        // 删除聊天记录功能
+        // 删除聊天记录
         deleteChatButton.addEventListener('click', () => {
             if (chatContainer.children.length === 0) {
-                // 使用自定义弹窗而不是系统弹窗
                 modalTitle.textContent = 'Information';
                 modalContent.textContent = 'There is no chat record to delete.';
                 deleteConfirmationModal.classList.add('active');
@@ -775,24 +817,21 @@
 
         function confirmDelete() {
             chatContainer.innerHTML = '';
-            chatHistory = [];
-            localStorage.removeItem('chatHistory');
+            conversationHistory = [];
+            localStorage.removeItem('conversationHistory');
             closeModal();
         }
 
-        // 打开测试面板
+        // 测试面板
         function openTestPanel() {
             document.getElementById('test-panel').style.display = 'block';
             updateErrorList();
-            updatePerformanceMetrics();
         }
 
-        // 关闭测试面板
         function closeTestPanel() {
             document.getElementById('test-panel').style.display = 'none';
         }
 
-        // 更新错误列表
         function updateErrorList() {
             const errorList = document.getElementById('error-list');
             errorList.innerHTML = '';
@@ -810,85 +849,88 @@
             });
         }
 
-        // 更新性能指标
-        function updatePerformanceMetrics() {
-            const performancePanel = document.createElement('div');
-            performancePanel.style.marginTop = '20px';
-            performancePanel.style.padding = '10px';
-            performancePanel.style.border = '1px solid #ddd';
-            performancePanel.style.borderRadius = '5px';
-            performancePanel.innerHTML = `
-                <h4>性能指标</h4>
-                <div>CPU 使用率: ${navigator.hardwareConcurrency || 'N/A'}</div>
-                <div>内存使用量: ${performance.memory.usedJSHeapSize / 1024 / 1024} MB</div>
-                <div>网络请求状态: ${navigator.onLine ? '在线' : '离线'}</div>
-            `;
-            document.getElementById('test-panel').appendChild(performancePanel);
+        // 调试面板
+        function toggleDebugPanel() {
+            debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+            updateDebugMetrics();
         }
 
-        // 捕获所有可能的错误并记录
+        function updateDebugMetrics() {
+            // CPU使用率（模拟数据）
+            cpuUsage.textContent = Math.floor(Math.random() * 30) + '%';
+
+            // 内存使用
+            const memory = process.memoryUsage();
+            memoryUsage.textContent = `${(memory.heapUsed / 1024 / 1024).toFixed(2)} MB`;
+
+            // FPS计算
+            const now = Date.now();
+            frameTimes.push(now);
+            if (frameTimes.length > 100) frameTimes.shift();
+            const elapsed = now - frameTimes[0];
+            if (elapsed > 0) {
+                fps = Math.round((frameTimes.length / elapsed) * 1000);
+            }
+            fpsCounter.textContent = fps;
+
+            // 错误日志
+            errorListDebug.innerHTML = errorLogs.map(error => `
+                <div style="margin: 5px 0; padding: 5px; border: 1px solid #444; border-radius: 3px;">
+                    ${error.timestamp}: ${error.message}
+                </div>
+            `).join('');
+
+            requestAnimationFrame(updateDebugMetrics);
+        }
+
+        // 全局错误处理
+        let errorLogs = JSON.parse(localStorage.getItem('errorLogs')) || [];
         window.addEventListener('error', (event) => {
             errorLogs.push({
                 timestamp: new Date().toLocaleString(),
                 message: `全局错误: ${event.message}`
             });
+            localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
         });
 
-        // 记录缓存状态
-        function logCacheStatus() {
-            errorLogs.push({
-                timestamp: new Date().toLocaleString(),
-                message: `缓存状态: ${localStorage.length} 项缓存`
-            });
-        }
-
-        // 记录主题模式
-        function logThemeStatus() {
-            errorLogs.push({
-                timestamp: new Date().toLocaleString(),
-                message: `主题模式: ${document.body.classList.contains('light_mode') ? '浅色模式' : '深色模式'}`
-            });
-        }
-
-        // 定期记录调试信息
+        // 定期保存错误日志
         setInterval(() => {
-            logCacheStatus();
-            logThemeStatus();
-        }, 60000); // 每分钟记录一次
+            localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
+        }, 60000);
 
-        // 保存对话历史到本地存储
-        function saveChatHistory(userMessage, botReply) {
-            chatHistory.push({
-                user: userMessage,
-                bot: botReply,
-                timestamp: new Date().toLocaleString()
+        // 加载历史对话
+        function loadConversationHistory() {
+            conversationHistory.forEach((message, index) => {
+                const messageElement = createMessageElement(message.content, message.role === 'user');
+                chatContainer.appendChild(messageElement);
+                if (message.role === 'assistant') {
+                    const textElement = messageElement.querySelector('.text');
+                    textElement.textContent = message.content;
+                    const loadingIndicator = messageElement.querySelector('.loading-indicator');
+                    loadingIndicator.style.display = 'none';
+                }
             });
-            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
         }
+        loadConversationHistory();
 
-        // 从本地存储加载对话历史
-        function loadChatHistory() {
-            const savedHistory = localStorage.getItem('chatHistory');
-            if (savedHistory) {
-                chatHistory = JSON.parse(savedHistory);
-                chatHistory.forEach(entry => {
-                    const outgoingMessage = createMessageElement(entry.user, true);
-                    chatContainer.appendChild(outgoingMessage);
-                    const incomingMessage = createMessageElement(entry.bot, false);
-                    chatContainer.appendChild(incomingMessage);
-                });
-                chatContainer.scrollTo(0, chatContainer.scrollHeight);
+        // 语音控制
+        function toggleSpeech() {
+            isSpeechEnabled = !isSpeechEnabled;
+            voiceSwitch.classList.toggle('active', isSpeechEnabled);
+            voiceSwitch.textContent = isSpeechEnabled ? 'volume_up' : 'volume_off';
+            if (!isSpeechEnabled) {
+                speechSynthesis.cancel();
             }
         }
 
-        // 页面加载时加载对话历史
-        window.addEventListener('load', loadChatHistory);
-
+        // 表单提交
         typingForm.addEventListener('submit', (e) => {
             e.preventDefault();
             sendMessage();
         });
 
+        // 建议项点击
         suggestions.forEach(suggestion => {
             suggestion.addEventListener('click', () => {
                 const message = suggestion.querySelector('.text').innerText;
@@ -896,6 +938,9 @@
                 sendMessage();
             });
         });
+
+        // 初始化调试面板
+        requestAnimationFrame(updateDebugMetrics);
     </script>
 </body>
 </html>
