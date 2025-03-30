@@ -93,7 +93,6 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-flow 12s ease-in-out infinite alternate;
         }
         @keyframes gradient-flow {
             0% {
@@ -526,8 +525,8 @@
     <!-- Custom modal for delete confirmation -->
     <div class="modal-overlay" id="delete-confirmation-modal">
         <div class="modal-content">
-            <h3>Confirm Deletion</h3>
-            <p>Are you sure you want to delete all chat records?</p>
+            <h3 id="modal-title">Confirm Deletion</h3>
+            <p id="modal-content">Are you sure you want to delete all chat records?</p>
             <div class="modal-buttons">
                 <button class="modal-button cancel" onclick="closeModal()">Cancel</button>
                 <button class="modal-button confirm" onclick="confirmDelete()">Delete</button>
@@ -566,6 +565,8 @@
         const deleteChatButton = document.querySelector("#delete-chat-button");
         const voiceSwitch = document.getElementById('voice-switch');
         const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
 
         let isProcessing = false;
         let isSpeechEnabled = true;
@@ -708,13 +709,18 @@
         // 删除聊天记录功能
         deleteChatButton.addEventListener('click', () => {
             if (chatContainer.children.length === 0) {
-                alert('没有聊天记录可删除');
+                // 使用自定义弹窗而不是系统弹窗
+                modalTitle.textContent = 'Information';
+                modalContent.textContent = 'There is no chat record to delete.';
+                deleteConfirmationModal.classList.add('active');
                 return;
             }
             openModal();
         });
 
         function openModal() {
+            modalTitle.textContent = 'Confirm Deletion';
+            modalContent.textContent = 'Are you sure you want to delete all chat records?';
             deleteConfirmationModal.classList.add('active');
         }
 
