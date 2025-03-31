@@ -792,39 +792,14 @@
         // 加载主题设置
         function loadThemeFromLocalstorage() {
             const savedTheme = localStorage.getItem('themeColor');
-            
-            // 检查是否有用户手动设置的主题
-            if (savedTheme) {
-                document.body.classList.add(savedTheme === 'light_mode' ? 'light_mode' : '');
-                toggleThemeButton.textContent = savedTheme === 'light_mode' ? 'dark_mode' : 'light_mode';
+            if (savedTheme === 'light_mode') {
+                document.body.classList.add('light_mode');
+                toggleThemeButton.textContent = 'dark_mode';
             } else {
-                // 如果没有用户手动设置的主题，根据系统偏好设置主题
-                const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-                if (prefersDarkScheme.matches) {
-                    document.body.classList.add('light_mode');
-                    toggleThemeButton.textContent = 'dark_mode';
-                } else {
-                    document.body.classList.remove('light_mode');
-                    toggleThemeButton.textContent = 'light_mode';
-                }
+                document.body.classList.remove('light_mode');
+                toggleThemeButton.textContent = 'light_mode';
             }
         }
-
-        // 监听系统偏好的变化
-        const colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        colorSchemeQuery.addEventListener('change', (e) => {
-            // 只有在用户没有手动设置主题时，才根据系统偏好调整
-            if (!localStorage.getItem('themeColor')) {
-                if (e.matches) {
-                    document.body.classList.add('light_mode');
-                    toggleThemeButton.textContent = 'dark_mode';
-                } else {
-                    document.body.classList.remove('light_mode');
-                    toggleThemeButton.textContent = 'light_mode';
-                }
-            }
-        });
-
         loadThemeFromLocalstorage();
 
         // 删除聊天记录
