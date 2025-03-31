@@ -573,8 +573,9 @@
 
         // 处理浏览器返回按钮
         window.addEventListener('popstate', (event) => {
-            // 刷新页面
-            window.location.reload();
+            if (event.state && event.state.page === 'one_a') {
+                window.location.href = 'index.html';
+            }
         });
 
         // 初始化变量
