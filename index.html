@@ -648,7 +648,7 @@
         const maxRetries = 3;
         const proxyList = ['https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
         let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
-        let errorLogs = [];
+        let errorLogs = JSON.parse(localStorage.getItem('errorLogs')) || [];
 
         pageTitle.addEventListener('click', () => {
             history.pushState({ page: 'one_a' }, 'One A Page', 'one_a.html');
@@ -760,12 +760,16 @@
                     break;
                 } catch (error) {
                     retryCount++;
+                    errorLogs.push({
+                        timestamp: new Date().toLocaleString(),
+                        message: `服务调用失败: ${error.message}`
+                    });
+                    localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
+                    if (document.getElementById('test-panel').style.display === 'block') {
+                        updateErrorList();
+                    }
                     if (retryCount > maxRetries) {
                         finalReply = `服务暂时不可用，请稍后再试 (错误代码: ${error.message})`;
-                        errorLogs.push({
-                            timestamp: new Date().toLocaleString(),
-                            message: `服务调用失败: ${error.message}`
-                        });
                     }
                 }
             }
@@ -842,7 +846,8 @@
 
         function updateErrorList() {
             const errorList = document.getElementById('error-list');
-            errorList.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            
             errorLogs.forEach((error, index) => {
                 const errorItem = document.createElement('div');
                 errorItem.style.margin = '10px 0';
@@ -854,8 +859,11 @@
                     <div><strong>错误 ${index + 1}</strong> - ${error.timestamp}</div>
                     <div>${error.message}</div>
                 `;
-                errorList.appendChild(errorItem);
+                fragment.appendChild(errorItem);
             });
+
+            errorList.innerHTML = '';
+            errorList.appendChild(fragment);
         }
 
         window.addEventListener('error', (event) => {
@@ -863,6 +871,10 @@
                 timestamp: new Date().toLocaleString(),
                 message: `全局错误: ${event.message}`
             });
+            localStorage.setItem('errorLogs', JSON.stringify(errorLogs));
+            if (document.getElementById('test-panel').style.display === 'block') {
+                updateErrorList();
+            }
         });
 
         function loadConversationHistory() {
@@ -920,6 +932,8 @@
         function clearCache() {
             localStorage.removeItem('conversationHistory');
             localStorage.removeItem('themeColor');
+            localStorage.removeItem('errorLogs');
+            errorLogs = [];
             location.reload();
         }
     </script>
