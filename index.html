@@ -93,7 +93,6 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-flow 12s ease-in-out infinite alternate;
         }
         @keyframes gradient-flow {
             0% {
@@ -493,6 +492,14 @@
             max-height: 300px;
             overflow-y: auto;
         }
+
+        /* 路由样式 */
+        .page {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
@@ -540,6 +547,15 @@
         </div>
     </div>
 
+    <!-- 应用导航界面 -->
+    <div id="appNavPage" class="page"></div>
+
+    <!-- 404 页面 -->
+    <div id="notFound" class="page">
+        <h1>ERROR 404</h1>
+        <p>页面未找到</p>
+    </div>
+
     <!-- Custom modal for delete confirmation -->
     <div class="modal-overlay" id="delete-confirmation-modal">
         <div class="modal-content">
@@ -560,21 +576,63 @@
     </div>
 
     <script>
-        // 页面切换逻辑
-        const pageTitle = document.getElementById('pageTitle');
-        const chatPage = document.getElementById('chatPage');
+        // 路由配置
+        const routes = {
+            '/': 'chatPage',
+            '/app_nav': 'appNavPage'
+        };
 
-        // 点击标题切换到新页面
+        // 加载页面内容
+        async function loadPage(path) {
+            const target = routes[path] || 'notFound';
+            const element = document.getElementById(target);
+            
+            if (target !== 'chatPage' && target !== 'notFound') {
+                try {
+                    const response = await fetch(`./${target}.html`);
+                    const content = await response.text();
+                    element.innerHTML = content;
+                } catch (error) {
+                    element.innerHTML = '<p>加载失败</p>';
+                }
+            }
+
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 显示目标页面
+            element.classList.add('active');
+            
+            // 更新浏览器地址
+            history.replaceState({}, '', `#${path}`);
+        }
+
+        // 初始化路由
+        function initRouter() {
+            const path = window.location.hash.slice(1) || '/';
+            loadPage(path);
+        }
+
+        // 监听路由变化
+        window.addEventListener('hashchange', () => {
+            const path = window.location.hash.slice(1);
+            loadPage(path);
+        });
+
+        // 点击标题切换到应用导航页面
+        const pageTitle = document.getElementById('pageTitle');
         pageTitle.addEventListener('click', () => {
-            history.pushState({ page: 'one_a' }, 'One A Page', 'one_a.html');
-            chatPage.classList.remove('active');
-            window.location.href = 'one_a.html';
+            history.pushState({ page: 'app_nav' }, 'App Navigation', '#/app_nav');
+            loadPage('/app_nav');
         });
 
         // 处理浏览器返回按钮
         window.addEventListener('popstate', (event) => {
-            if (event.state && event.state.page === 'one_a') {
-                window.location.href = 'index.html';
+            if (event.state && event.state.page === 'app_nav') {
+                history.replaceState({}, '', '/');
+                loadPage('/');
             }
         });
 
@@ -636,13 +694,6 @@
             const userInput = typingForm.querySelector('.typing-input');
             const message = userInput.value.trim();
             if (!message || isProcessing) return;
-
-            // 打开测试面板
-            if (message === "测试") {
-                openTestPanel();
-                userInput.value = '';
-                return;
-            }
 
             userInput.value = '';
             const outgoingMessage = createMessageElement(message, true);
@@ -848,6 +899,9 @@
                 sendMessage();
             });
         });
+
+        // 初始化
+        initRouter();
     </script>
 </body>
 </html>
