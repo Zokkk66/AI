@@ -36,9 +36,14 @@
             --secondary-color: #E9EEF6;
             --secondary-hover-color: #DBE1EA;
         }
+        html {
+            background: var(--primary-color);
+            transition: background 0.3s ease;
+        }
         body {
             background: var(--primary-color);
             transition: background 0.3s ease;
+            min-height: 100vh;
         }
         .header, .chat-list .message, .typing-form {
             margin: 0 auto;
@@ -157,6 +162,7 @@
             max-height: 100vh;
             overflow-y: auto;
             scrollbar-color: var(--subheading-color) transparent;
+            background: inherit;
         }
         .chat-list .message {
             margin-top: 1.5rem;
@@ -488,14 +494,38 @@
             left: 0;
             right: 0;
             background: var(--primary-color);
-            padding: 10px;
-            border-bottom: 1px solid var(--secondary-color);
+            padding: 20px;
+            border-bottom: 2px solid var(--secondary-color);
             z-index: 1000;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        #test-panel h3 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
         }
         #error-list {
             max-height: 300px;
             overflow-y: auto;
+            margin-bottom: 15px;
+            background: var(--secondary-color);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        #test-panel button {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: var(--secondary-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        #test-panel button:hover {
+            background: var(--secondary-hover-color);
+            transform: translateY(-1px);
         }
         .back-to-top {
             position: absolute;
@@ -512,7 +542,7 @@
             cursor: pointer;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: all 0.3s ease;
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
@@ -817,8 +847,9 @@
                 const errorItem = document.createElement('div');
                 errorItem.style.margin = '10px 0';
                 errorItem.style.padding = '10px';
-                errorItem.style.border = '1px solid var(--secondary-color)';
+                errorItem.style.border = `1px solid ${getComputedStyle(document.documentElement).getPropertyValue('--secondary-color')}`;
                 errorItem.style.borderRadius = '5px';
+                errorItem.style.color = 'var(--text-color)';
                 errorItem.innerHTML = `
                     <div><strong>错误 ${index + 1}</strong> - ${error.timestamp}</div>
                     <div>${error.message}</div>
