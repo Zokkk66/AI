@@ -3,91 +3,919 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zorrose System</title>
+    <title>Zorrose-bot</title>
     <style>
-        body { margin: 0; font-family: 'Poppins', sans-serif; }
-        .nav {
-            background: var(--primary-color);
-            padding: 1rem;
-            display: flex;
-            justify-content: flex-end;
-            gap: 2rem;
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
         }
-        .nav a {
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 1.2rem;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
+        :root {
+            --text-color: #E3E3E3;
+            --subheading-color: #828282;
+            --placeholder-color: #A6A6A6;
+            --primary-color: #242424;
+            --secondary-color: #383838;
+            --secondary-hover-color: #444;
+            --primary-color-1: #FF6B6B;
+            --primary-color-2: #FF9F45;
+            --primary-color-3: #FFD93D;
+            --primary-color-4: #6BCB77;
+            --primary-color-5: #4D96FF;
+            --primary-color-6: #845EC2;
+            --primary-color-7: #D65DB1;
+            --gradient-size: 200% 100%;
+        }
+        .light_mode {
+            --text-color: #222;
+            --subheading-color: #A0A0A0;
+            --placeholder-color: #6C6C6C;
+            --primary-color: #FFF;
+            --secondary-color: #E9EEF6;
+            --secondary-hover-color: #DBE1EA;
+        }
+        body {
+            background: var(--primary-color);
             transition: background 0.3s ease;
         }
-        .nav a:hover {
+        .header, .chat-list .message, .typing-form {
+            margin: 0 auto;
+            max-width: 980px;
+        }
+        .header {
+            margin-top: 2vh;
+            padding: 1rem;
+            overflow-x: hidden;
+        }
+        body.hide-header .header {
+            margin: 0;
+            display: none;
+        }
+        .header :where(.title, .subtitle) {
+            font-weight: 500;
+            line-height: 4rem;
+        }
+        .header .title {
+            width: fit-content;
+            font-size: 3rem;
+            background-image: linear-gradient(
+                135deg,
+                var(--primary-color-1) 0%,
+                var(--primary-color-2) 15%,
+                var(--primary-color-3) 30%,
+                var(--primary-color-4) 45%,
+                var(--primary-color-5) 60%,
+                var(--primary-color-6) 75%,
+                var(--primary-color-7) 90%
+            );
+            background-size: var(--gradient-size);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-flow 12s ease-in-out infinite alternate;
+            cursor: pointer;
+        }
+        .header .subtitle {
+            font-size: 2.6rem;
+            background-image: linear-gradient(
+                135deg,
+                var(--primary-color-1) 0%,
+                var(--primary-color-2) 15%,
+                var(--primary-color-3) 30%,
+                var(--primary-color-4) 45%,
+                var(--primary-color-5) 60%,
+                var(--primary-color-6) 75%,
+                var(--primary-color-7) 90%
+            );
+            background-size: var(--gradient-size);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-flow 12s ease-in-out infinite alternate;
+        }
+        @keyframes gradient-flow {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        .suggestion-list {
+            width: 100%;
+            list-style: none;
+            display: flex;
+            gap: 1.25rem;
+            margin-top: 2.5vh;
+            overflow: hidden;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+        .suggestion-list .suggestion {
+            cursor: pointer;
+            padding: 1.25rem;
+            width: 222px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            border-radius: 0.75rem;
+            justify-content: space-between;
+            background: var(--secondary-color);
+            transition: 0.2s ease;
+        }
+        .suggestion-list .suggestion:hover {
             background: var(--secondary-hover-color);
         }
-        .content {
-            padding: 2rem;
-            min-height: calc(100vh - 6rem);
-            transition: opacity 0.3s ease;
+        .suggestion-list .suggestion :where(.text, .icon) {
+            font-weight: 400;
+            color: var(--text-color);
         }
-        .page {
+        .suggestion-list .suggestion .icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            font-size: 1.3rem;
+            margin-top: 2.5rem;
+            align-self: flex-end;
+            align-items: center;
+            border-radius: 50%;
+            justify-content: center;
+            color: var(--text-color);
+            background: var(--primary-color);
+        }
+        .chat-list {
+            padding: 2rem 1rem 12rem;
+            max-height: 100vh;
+            overflow-y: auto;
+            scrollbar-color: #999 transparent;
+        }
+        .chat-list .message {
+            margin-top: 1.5rem;
+        }
+        .chat-list .message .message-content {
+            display: flex;
+            gap: 1.5rem;
+            width: 100%;
+            align-items: center;
+        }
+        .chat-list .message.outgoing .message-content {
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .chat-list .message.incoming .message-content {
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+        .chat-list .message .avatar {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            align-self: flex-start;
+        }
+        .chat-list .message.outgoing .avatar {
+            align-self: flex-end;
+        }
+        .chat-list .message .text {
+            color: var(--text-color);
+            white-space: pre-wrap;
+            max-width: 90%;
+            background: var(--secondary-color);
+            padding: 1rem;
+            border-radius: 10px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        .chat-list .message.outgoing .text {
+            margin-left: auto;
+            background: var(--primary-color-1);
+            color: white;
+            max-width: 90%;
+        }
+        .chat-list .message.incoming .text {
+            margin-right: auto;
+            background: var(--secondary-color);
+            max-width: 90%;
+        }
+        .chat-list .message.error .text {
+            color: #e55865;
+        }
+        .chat-list .message.loading .text {
             display: none;
-            opacity: 0;
         }
-        .active {
-            display: block;
+        .chat-list .message.loading .avatar {
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .chat-list .message .icon {
+            color: var(--text-color);
+            cursor: pointer;
+            height: 35px;
+            width: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            font-size: 1.25rem;
+            margin-left: 3.5rem;
+            visibility: hidden;
+        }
+        .chat-list .message .icon.hide {
+            visibility: hidden;
+        }
+        .chat-list .message:not(.loading, .error):hover .icon:not(.hide) {
+            visibility: visible;
+        }
+        .chat-list .message .icon:hover {
+            background: var(--secondary-hover-color);
+        }
+        .chat-list .message .loading-indicator {
+            display: none;
+            gap: 0.8rem;
+            width: 100%;
+            flex-direction: column;
+        }
+        .chat-list .message.loading .loading-indicator {
+            display: flex;
+        }
+        .chat-list .message .loading-indicator .loading-bar {
+            height: 11px;
+            width: 100%;
+            border-radius: 0.135rem;
+            background-position: -800px 0;
+            background: linear-gradient(to right, #4285f4, var(--primary-color), #4285f4);
+            animation: loading 3s linear infinite;
+        }
+        .chat-list .message .loading-indicator .loading-bar:last-child {
+            width: 70%;
+        }
+        @keyframes loading {
+            0% {
+                background-position: -800px 0;
+            }
+            100% {
+                background-position: 800px 0;
+            }
+        }
+        .typing-area {
+            position: fixed;
+            width: 100%;
+            left: 0;
+            bottom: 0;
+            padding: 1rem;
+            background: var(--primary-color);
+        }
+        .typing-area :where(.typing-form, .action-buttons) {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .typing-form .input-wrapper {
+            width: 100%;
+            height: 56px;
+            display: flex;
+            position: relative;
+        }
+        .typing-form .typing-input {
+            height: 100%;
+            width: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 1rem;
+            color: var(--text-color);
+            padding: 1.1rem 4rem 1.1rem 1.5rem;
+            border-radius: 100px;
+            background: var(--secondary-color);
+        }
+        .typing-form .typing-input:focus {
+            background: var(--secondary-hover-color);
+        }
+        .typing-form .typing-input::placeholder {
+            color: var(--placeholder-color);
+        }
+        .typing-area .icon {
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            font-size: 1.4rem;
+            color: var(--text-color);
+            align-items: center;
+            justify-content: center;
+            background: var(--secondary-color);
+            transition: 0.2s ease;
+        }
+        .typing-area .icon:hover {
+            background: var(--secondary-hover-color);
+        }
+        .typing-form #send-message-button {
+            position: absolute;
+            right: 0;
+            outline: none;
+            border: none;
+            transform: scale(0);
+            background: transparent;
+            transition: transform 0.2s ease;
+        }
+        .typing-form .typing-input:valid ~ #send-message-button {
+            transform: scale(1);
+        }
+        .typing-area .disclaimer-text {
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            color: var(--placeholder-color);
+        }
+        @media (max-width: 768px) {
+            .header :is(.title, .subtitle) {
+                font-size: 2rem;
+                line-height: 2.6rem;
+            }
+            .header .subtitle {
+                font-size: 1.7rem;
+            }
+            .typing-area :where(.typing-form, .action-buttons) {
+                gap: 0.4rem;
+            }
+            .typing-form .input-wrapper {
+                height: 50px;
+            }
+            .typing-form .typing-input {
+                padding: 1.1rem 3.5rem 1.1rem 1.2rem;
+            }
+            .typing-area .icon {
+                height: 50px;
+                width: 50px;
+            }
+            .typing-area .disclaimer-text {
+                font-size: 0.75rem;
+                margin-top: 0.5rem;
+            }
+        }
+
+        /* Custom modal for delete confirmation */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s ease;
+        }
+        .modal-overlay.active {
             opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--primary-color);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: var(--text-color);
+        }
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        .modal-content p {
+            margin-bottom: 2rem;
+            color: var(--subheading-color);
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .modal-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s ease;
+        }
+        .modal-button.confirm {
+            background: #4285f4;
+            color: white;
+        }
+        .modal-button.cancel {
+            background: var(--secondary-color);
+            color: var(--text-color);
+        }
+        .modal-button:hover {
+            opacity: 0.9;
+        }
+
+        /* 输入框和按钮的优化 */
+        @media (min-width: 769px) {
+            .typing-area .typing-form {
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+            .typing-form .input-wrapper {
+                flex: 1;
+                width: 100%;
+                margin-right: 10px;
+            }
+            .action-buttons {
+                flex-shrink: 0;
+                display: flex;
+                gap: 10px;
+                min-width: 168px;
+            }
+            .typing-form .typing-input {
+                width: 100%;
+                min-width: 100px;
+            }
+            .typing-area .icon {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .typing-form .input-wrapper {
+                flex: 1;
+                width: 100%;
+                margin-right: 10px;
+            }
+            .action-buttons {
+                flex-shrink: 0;
+                display: flex;
+                gap: 10px;
+                min-width: 120px;
+            }
+            .typing-form .typing-input {
+                width: 100%;
+                min-width: 100px;
+            }
+        }
+
+        /* 测试面板样式 */
+        #test-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            z-index: 1000;
+        }
+        #error-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* 返回顶部按钮样式 */
+        .back-to-top {
+            position: fixed;
+            bottom: 140px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: var(--secondary-hover-color);
+        }
+
+        .back-to-top .material-symbols-rounded {
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .back-to-top {
+                width: 40px;
+                height: 40px;
+                bottom: 130px;
+                right: 10px;
+            }
         }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
-    <nav class="nav">
-        <a href="#chat">Zorrose-bot</a>
-        <a href="#osmo">Osmo</a>
-    </nav>
+    <!-- AI聊天界面 -->
+    <div id="chatPage" class="page active">
+        <header class="header">
+            <h1 class="title" id="pageTitle">Hello, there</h1>
+            <p class="subtitle">How can I help you today?</p>
+            <ul class="suggestion-list">
+                <li class="suggestion">
+                    <h4 class="text">Help me plan a game night with my 5 best friends for under $100.</h4>
+                    <span class="icon material-symbols-rounded">draw</span>
+                </li>
+                <li class="suggestion">
+                    <h4 class="text">What are the best tips to improve my public speaking skills?</h4>
+                    <span class="icon material-symbols-rounded">lightbulb</span>
+                </li>
+                <li class="suggestion">
+                    <h4 class="text">Can you help me find the latest news on web development?</h4>
+                    <span class="icon material-symbols-rounded">explore</span>
+                </li>
+                <li class="suggestion">
+                    <h4 class="text">Write JavaScript code to sum all elements in an array.</h4>
+                    <span class="icon material-symbols-rounded">code</span>
+                </li>
+            </ul>
+        </header>
+        <div class="chat-list"></div>
+        <div class="typing-area">
+            <form class="typing-form">
+                <div class="input-wrapper">
+                    <input type="text" placeholder="Input it" class="typing-input" required />
+                    <button id="send-message-button" class="icon material-symbols-rounded">send</button>
+                </div>
+                <div class="action-buttons">
+                    <span id="theme-toggle-button" class="icon material-symbols-rounded">light_mode</span>
+                    <span id="voice-switch" class="icon material-symbols-rounded" onclick="toggleSpeech()">volume_up</span>
+                    <span id="delete-chat-button" class="icon material-symbols-rounded">delete</span>
+                </div>
+            </form>
+            <p class="disclaimer-text">
+                Zorrose-Bot may display inaccurate info, including about people, so double-check its responses.
+            </p>
+        </div>
+    </div>
 
-    <div class="content">
-        <div id="chat" class="page active"></div>
-        <div id="osmo" class="page"></div>
+    <!-- Custom modal for delete confirmation -->
+    <div class="modal-overlay" id="delete-confirmation-modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirm Deletion</h3>
+            <p id="modal-content">Are you sure you want to delete all chat records?</p>
+            <div class="modal-buttons">
+                <button class="modal-button cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-button confirm" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 测试面板 -->
+    <div id="test-panel">
+        <h3>测试面板</h3>
+        <div id="error-list"></div>
+        <button onclick="closeTestPanel()">关闭</button>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <div class="back-to-top" id="back-to-top">
+        <span class="material-symbols-rounded">arrow_upward</span>
     </div>
 
     <script>
-        const routes = {
-            '#chat': 'chat',
-            '#osmo': 'osmo'
-        };
+        // 页面切换逻辑
+        const pageTitle = document.getElementById('pageTitle');
+        const chatPage = document.getElementById('chatPage');
 
-        async function loadPage(hash) {
-            const target = routes[hash] || 'chat';
-            const element = document.getElementById(target);
-
-            try {
-                const response = await fetch(`./${target}.html`);
-                const content = await response.text();
-                element.innerHTML = content;
-            } catch (error) {
-                element.innerHTML = '<p>加载失败</p>';
-            }
-
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-
-            element.classList.add('active');
-            history.replaceState({}, '', hash);
-        }
-
-        function initRouter() {
-            const hash = window.location.hash || '#chat';
-            loadPage(hash);
-        }
-
-        window.addEventListener('hashchange', () => {
-            const hash = window.location.hash;
-            loadPage(hash);
+        // 点击标题切换到新页面
+        pageTitle.addEventListener('click', () => {
+            history.pushState({ page: 'one_a' }, 'One A Page', 'one_a.html');
+            chatPage.classList.remove('active');
+            window.location.href = 'one_a.html';
         });
 
-        initRouter();
+        // 处理浏览器返回按钮
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.page === 'one_a') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // 初始化变量
+        const typingForm = document.querySelector(".typing-form");
+        const chatContainer = document.querySelector(".chat-list");
+        const suggestions = document.querySelectorAll(".suggestion");
+        const toggleThemeButton = document.querySelector("#theme-toggle-button");
+        const deleteChatButton = document.querySelector("#delete-chat-button");
+        const voiceSwitch = document.getElementById('voice-switch');
+        const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+
+        let isProcessing = false;
+        let isSpeechEnabled = true;
+        const maxRetries = 3;
+        const proxyList = ['https://api.allorigins.win/raw?url=', 'https://api.codetabs.com/v1/proxy?quest='];
+        let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
+        let errorLogs = [];
+
+        // 语音合成
+        function speakText(text) {
+            if (isSpeechEnabled && 'speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance();
+                utterance.text = text.replace(/[（ $].+?[）$ ]/g, '');
+                utterance.lang = 'zh-CN';
+                utterance.rate = 1;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 创建消息元素
+        function createMessageElement(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'outgoing' : 'incoming'}`;
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${isUser ? `
+                        <img class="avatar" src="images/user.jpg" alt="User avatar">
+                        <p class="text">${content}</p>
+                    ` : `
+                        <img class="avatar" src="images/gemini.jpg" alt="Gemini avatar">
+                        <div class="loading-indicator">
+                            <div class="loading-bar"></div>
+                            <div class="loading-bar"></div>
+                            <div class="loading-bar"></div>
+                        </div>
+                        <p class="text"></p>
+                    `}
+                    <span onClick="copyMessage(this)" class="icon material-symbols-rounded">content_copy</span>
+                </div>
+            `;
+            return messageDiv;
+        }
+
+        // 发送消息处理
+        async function sendMessage() {
+            const userInput = typingForm.querySelector('.typing-input');
+            const message = userInput.value.trim();
+            if (!message || isProcessing) return;
+
+            // 打开测试面板
+            if (message === "测试") {
+                openTestPanel();
+                userInput.value = '';
+                return;
+            }
+
+            userInput.value = '';
+            const outgoingMessage = createMessageElement(message, true);
+            chatContainer.appendChild(outgoingMessage);
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
+            conversationHistory.push({ role: 'user', content: message });
+
+            const incomingMessage = createMessageElement('', false);
+            chatContainer.appendChild(incomingMessage);
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
+
+            const textElement = incomingMessage.querySelector('.text');
+            const loadingIndicator = incomingMessage.querySelector('.loading-indicator');
+            loadingIndicator.style.display = 'flex';
+            isProcessing = true;
+
+            const quickResponses = {
+                '你好': '你好！有什么可以帮您？',
+                '你好呀': '你好呀～欢迎咨询佐罗斯智能服务',
+                '佐罗斯': '这里是佐罗斯官方智能助手，请提出您的需求',
+                '你是谁': '我是佐罗斯智能助手，为您提供24小时服务'
+            };
+
+            const trimmedMessage = message.replace(/\s+/g, '');
+            if (quickResponses[trimmedMessage]) {
+                setTimeout(() => {
+                    const reply = quickResponses[trimmedMessage];
+                    textElement.textContent = reply;
+                    speakText(reply);
+                    conversationHistory.push({ role: 'assistant', content: reply });
+                    localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+                    loadingIndicator.style.display = 'none';
+                    isProcessing = false;
+                }, 800);
+                return;
+            }
+
+            let retryCount = 0;
+            let finalReply = '';
+
+            while (retryCount <= maxRetries) {
+                try {
+                    const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+                    const apiUrl = encodeURIComponent('http://api.qingyunke.com/api.php?key=free&appid=0&msg=' + encodeURIComponent(message));
+                    const response = await fetch(proxy + apiUrl);
+                    const data = await response.json();
+                    if (data.result !== 0) throw new Error('API响应异常');
+
+                    finalReply = data.content
+                        .replace(/{br}/g, '\n')
+                        .replace(/菲菲/g, '佐罗斯')
+                        .replace(/北京彩讯科技/g, '佐罗斯团队');
+                    break;
+                } catch (error) {
+                    retryCount++;
+                    if (retryCount > maxRetries) {
+                        finalReply = `服务暂时不可用，请稍后再试 (错误代码: ${error.message})`;
+                        errorLogs.push({
+                            timestamp: new Date().toLocaleString(),
+                            message: `服务调用失败: ${error.message}`
+                        });
+                    }
+                }
+            }
+
+            textElement.textContent = finalReply;
+            speakText(finalReply);
+            conversationHistory.push({ role: 'assistant', content: finalReply });
+            localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+            loadingIndicator.style.display = 'none';
+            isProcessing = false;
+        }
+
+        // 复制消息
+        function copyMessage(copyButton) {
+            const messageText = copyButton.parentElement.querySelector('.text').innerText;
+            navigator.clipboard.writeText(messageText);
+            copyButton.innerText = "done";
+            setTimeout(() => copyButton.innerText = "content_copy", 1000);
+        }
+
+        // 主题切换
+        toggleThemeButton.addEventListener('click', () => {
+            document.body.classList.toggle('light_mode');
+            const isLightMode = document.body.classList.contains('light_mode');
+            localStorage.setItem('themeColor', isLightMode ? 'light_mode' : 'dark_mode');
+            toggleThemeButton.textContent = isLightMode ? 'dark_mode' : 'light_mode';
+        });
+
+        // 加载主题设置
+        function loadThemeFromLocalstorage() {
+            const savedTheme = localStorage.getItem('themeColor');
+            if (savedTheme === 'light_mode') {
+                document.body.classList.add('light_mode');
+                toggleThemeButton.textContent = 'dark_mode';
+            } else {
+                document.body.classList.remove('light_mode');
+                toggleThemeButton.textContent = 'light_mode';
+            }
+        }
+        loadThemeFromLocalstorage();
+
+        // 删除聊天记录
+        deleteChatButton.addEventListener('click', () => {
+            if (chatContainer.children.length === 0) {
+                modalTitle.textContent = 'Information';
+                modalContent.textContent = 'There is no chat record to delete.';
+                deleteConfirmationModal.classList.add('active');
+                return;
+            }
+            openModal();
+        });
+
+        function openModal() {
+            modalTitle.textContent = 'Confirm Deletion';
+            modalContent.textContent = 'Are you sure you want to delete all chat records?';
+            deleteConfirmationModal.classList.add('active');
+        }
+
+        function closeModal() {
+            deleteConfirmationModal.classList.remove('active');
+        }
+
+        function confirmDelete() {
+            chatContainer.innerHTML = '';
+            conversationHistory = [];
+            localStorage.removeItem('conversationHistory');
+            closeModal();
+        }
+
+        // 测试面板
+        function openTestPanel() {
+            document.getElementById('test-panel').style.display = 'block';
+            updateErrorList();
+        }
+
+        function closeTestPanel() {
+            document.getElementById('test-panel').style.display = 'none';
+        }
+
+        function updateErrorList() {
+            const errorList = document.getElementById('error-list');
+            errorList.innerHTML = '';
+            errorLogs.forEach((error, index) => {
+                const errorItem = document.createElement('div');
+                errorItem.style.margin = '10px 0';
+                errorItem.style.padding = '10px';
+                errorItem.style.border = '1px solid #ddd';
+                errorItem.style.borderRadius = '5px';
+                errorItem.innerHTML = `
+                    <div><strong>错误 ${index + 1}</strong> - ${error.timestamp}</div>
+                    <div>${error.message}</div>
+                `;
+                errorList.appendChild(errorItem);
+            });
+        }
+
+        // 全局错误处理
+        window.addEventListener('error', (event) => {
+            errorLogs.push({
+                timestamp: new Date().toLocaleString(),
+                message: `全局错误: ${event.message}`
+            });
+        });
+
+        // 加载历史对话
+        function loadConversationHistory() {
+            conversationHistory.forEach((message, index) => {
+                const messageElement = createMessageElement(message.content, message.role === 'user');
+                chatContainer.appendChild(messageElement);
+                if (message.role === 'assistant') {
+                    const textElement = messageElement.querySelector('.text');
+                    textElement.textContent = message.content;
+                    const loadingIndicator = messageElement.querySelector('.loading-indicator');
+                    loadingIndicator.style.display = 'none';
+                }
+            });
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
+        }
+        loadConversationHistory();
+
+        // 语音控制
+        function toggleSpeech() {
+            isSpeechEnabled = !isSpeechEnabled;
+            voiceSwitch.classList.toggle('active', isSpeechEnabled);
+            voiceSwitch.textContent = isSpeechEnabled ? 'volume_up' : 'volume_off';
+            if (!isSpeechEnabled) {
+                speechSynthesis.cancel();
+            }
+        }
+
+        // 表单提交
+        typingForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            sendMessage();
+        });
+
+        // 建议项点击
+        suggestions.forEach(suggestion => {
+            suggestion.addEventListener('click', () => {
+                const message = suggestion.querySelector('.text').innerText;
+                typingForm.querySelector('.typing-input').value = message;
+                sendMessage();
+            });
+        });
+
+        // 返回顶部按钮逻辑
+        const backToTopButton = document.getElementById('back-to-top');
+
+        // 检查滚动位置并显示/隐藏按钮
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 200) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+
+        // 点击按钮返回顶部
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
     </script>
 </body>
 </html>
