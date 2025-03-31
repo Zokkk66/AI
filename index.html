@@ -159,20 +159,25 @@
         .chat-list .message {
             margin-top: 1.5rem;
         }
-        .chat-list .message .message-content {
-            display: flex;
-            gap: 1.5rem;
-            width: 100%;
-            align-items: center;
-        }
-        .chat-list .message.outgoing .message-content {
-            flex-direction: row-reverse;
-            justify-content: flex-end;
-        }
-        .chat-list .message.incoming .message-content {
-            flex-direction: row;
-            justify-content: flex-start;
-        }
+        /* 动态调整按钮位置 */
+.chat-list .message .message-content {
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+    align-items: center;
+}
+        /* 用户消息 */
+.chat-list .message.outgoing .message-content {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+/* AI 消息 */
+.chat-list .message.incoming .message-content {
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
         .chat-list .message .avatar {
             width: 40px;
             height: 40px;
@@ -219,20 +224,27 @@
                 transform: rotate(360deg);
             }
         }
-        .chat-list .message .icon {
-            color: var(--text-color);
-            cursor: pointer;
-            height: 35px;
-            width: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            font-size: 1.25rem;
-            margin-left: 3.5rem;
-            visibility: hidden;
-        }
+.chat-list .message .icon {
+    color: var(--text-color);
+    cursor: pointer;
+    height: 35px;
+    width: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    font-size: 1.25rem;
+    margin-left: 0.5rem; /* 减小距离 */
+    visibility: hidden;
+}
+
+/* 确保按钮是圆形 */
+.chat-list .message .icon {
+    aspect-ratio: 1 / 1; /* 确保宽高一致 */
+    border-radius: 50%;
+}
+
         .chat-list .message .icon.hide {
             visibility: hidden;
         }
@@ -496,11 +508,11 @@
 
         /* 返回顶部按钮样式 */
         .back-to-top {
-            position: fixed;
-            bottom: 125px;  /* 调整后的底部距离 */
-            right: 20px;
-            width: 50px;
-            height: 50px;
+            position: absolute;
+            top: -50px;
+            right: 0;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background: var(--secondary-color);
             color: var(--text-color);
@@ -530,10 +542,8 @@
 
         @media (max-width: 768px) {
             .back-to-top {
-                width: 40px;
-                height: 40px;
-                bottom: 125px;  /* 移动端调整 */
-                right: 10px;
+                width: 30px;
+                height: 30px;
             }
         }
     </style>
@@ -571,10 +581,13 @@
                     <input type="text" placeholder="Input it" class="typing-input" required />
                     <button id="send-message-button" class="icon material-symbols-rounded">send</button>
                 </div>
-                <div class="action-buttons">
+                <div class="action-buttons" style="position: relative;">
                     <span id="theme-toggle-button" class="icon material-symbols-rounded">light_mode</span>
                     <span id="voice-switch" class="icon material-symbols-rounded" onclick="toggleSpeech()">volume_up</span>
                     <span id="delete-chat-button" class="icon material-symbols-rounded">delete</span>
+                    <div class="back-to-top" id="back-to-top">
+                        <span class="material-symbols-rounded">arrow_upward</span>
+                    </div>
                 </div>
             </form>
             <p class="disclaimer-text">
@@ -601,11 +614,6 @@
         <div id="error-list"></div>
         <button onclick="closeTestPanel()">关闭</button>
         <button onclick="clearCache()">清除缓存</button>  <!-- 新增清除缓存按钮 -->
-    </div>
-
-    <!-- 返回顶部按钮 -->
-    <div class="back-to-top" id="back-to-top">
-        <span class="material-symbols-rounded">arrow_upward</span>
     </div>
 
     <script>
@@ -784,14 +792,39 @@
         // 加载主题设置
         function loadThemeFromLocalstorage() {
             const savedTheme = localStorage.getItem('themeColor');
-            if (savedTheme === 'light_mode') {
-                document.body.classList.add('light_mode');
-                toggleThemeButton.textContent = 'dark_mode';
+            
+            // 检查是否有用户手动设置的主题
+            if (savedTheme) {
+                document.body.classList.add(savedTheme === 'light_mode' ? 'light_mode' : '');
+                toggleThemeButton.textContent = savedTheme === 'light_mode' ? 'dark_mode' : 'light_mode';
             } else {
-                document.body.classList.remove('light_mode');
-                toggleThemeButton.textContent = 'light_mode';
+                // 如果没有用户手动设置的主题，根据系统偏好设置主题
+                const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+                if (prefersDarkScheme.matches) {
+                    document.body.classList.add('light_mode');
+                    toggleThemeButton.textContent = 'dark_mode';
+                } else {
+                    document.body.classList.remove('light_mode');
+                    toggleThemeButton.textContent = 'light_mode';
+                }
             }
         }
+
+        // 监听系统偏好的变化
+        const colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        colorSchemeQuery.addEventListener('change', (e) => {
+            // 只有在用户没有手动设置主题时，才根据系统偏好调整
+            if (!localStorage.getItem('themeColor')) {
+                if (e.matches) {
+                    document.body.classList.add('light_mode');
+                    toggleThemeButton.textContent = 'dark_mode';
+                } else {
+                    document.body.classList.remove('light_mode');
+                    toggleThemeButton.textContent = 'light_mode';
+                }
+            }
+        });
+
         loadThemeFromLocalstorage();
 
         // 删除聊天记录
@@ -903,7 +936,7 @@
 
         // 检查滚动位置并显示/隐藏按钮
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 200) {
+            if (window.scrollY > 300) {
                 backToTopButton.classList.add('visible');
             } else {
                 backToTopButton.classList.remove('visible');
