@@ -48,11 +48,14 @@
         html {
             background: var(--primary-color);
             transition: background var(--transition-speed) ease;
+            height: 100%;
         }
         body {
             background: var(--primary-color);
             transition: background var(--transition-speed) ease;
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         /* 侧边栏样式 */
@@ -61,14 +64,15 @@
             top: 0;
             left: -250px;
             width: 250px;
-            height: 100vh;
+            height: 100%;
             background-color: var(--primary-color);
-            backdrop-filter: blur(10px);
             color: var(--text-color);
             padding: 20px;
             z-index: 1000;
             box-shadow: var(--shadow-md);
-            transition: left var(--transition-speed) ease;
+            transition: 
+                left var(--transition-speed) ease,
+                background-color var(--transition-speed) ease;
         }
 
         .sidebar.active {
@@ -750,6 +754,19 @@
             to {
                 opacity: 0;
             }
+        }
+
+        /* 确保所有可能穿透的区域被覆盖 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            z-index: -1;
+            pointer-events: none;
         }
     </style>
 </head>
