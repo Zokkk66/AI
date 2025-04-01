@@ -720,18 +720,49 @@
                 height: 30px;
             }
         }
+
+        /* 新增提示样式 */
+        .success-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--secondary-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateX(-50%) translateY(10px);
+        }
+
+        .success-toast.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- 侧边栏 -->
     <div class="sidebar" id="sidebar">
         <ul class="sidebar-menu">
-            <li><a href="https://example.com/home"><i class="fas fa-home"></i> 首页</a></li>
-            <li><a href="https://example.com/feature1"><i class="fas fa-rocket"></i> 功能1</a></li>
-            <li><a href="https://example.com/feature2"><i class="fas fa-magic"></i> 功能2</a></li>
-            <li><a href="https://example.com/feature3"><i class="fas fa-chart-line"></i> 功能3</a></li>
+            <li><a href="https://zorrose.neocities.org/"><i class="fas fa-home"></i> 首页</a></li>
+            <li><a href="https://zorrose1.neocities.org/#ride"><i class="fas fa-rocket"></i> 功能1</a></li>
+            <li><a href="https://zorrose1.neocities.org/Unlock"><i class="fas fa-magic"></i> 功能2</a></li>
+            <li><a href="https://obtainable-solstice-wannanosaurus.glitch.me/"><i class="fas fa-chart-line"></i> 功能3</a></li>
             <li><a href="#" id="debug-button"><i class="fas fa-bug"></i> 调试</a></li>
-            <li><a href="https://example.com/settings"><i class="fas fa-cog"></i> 设置</a></li>
+            <li><a href="https://zorrose.neocities.org/privacy-policy"><i class="fas fa-cog"></i> 设置</a></li>
         </ul>
     </div>
 
@@ -801,6 +832,18 @@
                 </div>
             </div>
 
+            <!-- 设置模态框 -->
+            <div class="modal-overlay" id="settings-modal">
+                <div class="modal-content">
+                    <h3>功能开发中</h3>
+                    <p>该功能正在加速研发中，敬请期待！</p>
+                    <div class="modal-buttons">
+                        <button class="modal-button cancel" onclick="closeSettingsModal()">关闭</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 删除确认模态框 -->
             <div class="modal-overlay" id="delete-confirmation-modal">
                 <div class="modal-content">
                     <h3 id="modal-title">Confirm Deletion</h3>
@@ -848,7 +891,7 @@
 
         // 设置按钮
         document.getElementById('settings-button').addEventListener('click', () => {
-            alert('系统设置面板');
+            openSettingsModal();
         });
 
         // 聊天应用逻辑
@@ -1055,6 +1098,17 @@
             conversationHistory = [];
             localStorage.removeItem('conversationHistory');
             closeModal();
+            showSuccessToast('聊天记录已删除');
+        }
+
+        function openSettingsModal() {
+            const settingsModal = document.getElementById('settings-modal');
+            settingsModal.classList.add('active');
+        }
+
+        function closeSettingsModal() {
+            const settingsModal = document.getElementById('settings-modal');
+            settingsModal.classList.remove('active');
         }
 
         function openTestPanel() {
@@ -1066,32 +1120,32 @@
             document.getElementById('test-panel').style.display = 'none';
         }
 
-function updateErrorList() {
-    const errorList = document.getElementById('error-list');
-    const fragment = document.createDocumentFragment();
-    
-    errorLogs.forEach((error, index) => {
-        const errorItem = document.createElement('div');
-        errorItem.style.margin = '10px 0';
-        errorItem.style.padding = '10px';
-        errorItem.style.border = `1px solid ${getComputedStyle(document.documentElement).getPropertyValue('--secondary-color')}`;
-        errorItem.style.borderRadius = '5px';
-        errorItem.style.color = 'var(--text-color)';
-        errorItem.innerHTML = `
-            <div><strong>错误 ${index + 1}</strong> - ${error.timestamp}</div>
-            <div>${error.message}</div>
-        `;
-        fragment.appendChild(errorItem);
-    });
+        function updateErrorList() {
+            const errorList = document.getElementById('error-list');
+            const fragment = document.createDocumentFragment();
+            
+            errorLogs.forEach((error, index) => {
+                const errorItem = document.createElement('div');
+                errorItem.style.margin = '10px 0';
+                errorItem.style.padding = '10px';
+                errorItem.style.border = `1px solid ${getComputedStyle(document.documentElement).getPropertyValue('--secondary-color')}`;
+                errorItem.style.borderRadius = '5px';
+                errorItem.style.color = 'var(--text-color)';
+                errorItem.innerHTML = `
+                    <div><strong>错误 ${index + 1}</strong> - ${error.timestamp}</div>
+                    <div>${error.message}</div>
+                `;
+                fragment.appendChild(errorItem);
+            });
 
-    errorList.innerHTML = '';
-    errorList.appendChild(fragment);
-    
-    // 添加滚动逻辑
-    if (errorList.scrollHeight > errorList.clientHeight) {
-        errorList.scrollTop = errorList.scrollHeight;
-    }
-}
+            errorList.innerHTML = '';
+            errorList.appendChild(fragment);
+            
+            // 添加滚动逻辑
+            if (errorList.scrollHeight > errorList.clientHeight) {
+                errorList.scrollTop = errorList.scrollHeight;
+            }
+        }
 
         window.addEventListener('error', (event) => {
             errorLogs.push({
@@ -1162,6 +1216,21 @@ function updateErrorList() {
             localStorage.removeItem('errorLogs');
             errorLogs = [];
             location.reload();
+        }
+
+        // 新增提示功能
+        function showSuccessToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'success-toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // 应用动画
+            toast.classList.add('active');
+            setTimeout(() => {
+                toast.classList.remove('active');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 1500);
         }
     </script>
 </body>
