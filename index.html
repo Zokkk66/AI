@@ -169,6 +169,7 @@
             font-weight: bold;
             color: var(--text-color);
             transition: all var(--transition-speed) ease;
+            cursor: default;
         }
 
         .nav-buttons {
@@ -216,6 +217,7 @@
             overflow-x: hidden;
             background: var(--primary-color);
             transition: background var(--transition-speed) ease;
+            pointer-events: none;
         }
         body.hide-header .header {
             margin: 0;
@@ -224,6 +226,7 @@
         .header :where(.title, .subtitle) {
             font-weight: 500;
             line-height: 4rem;
+            cursor: default;
         }
         .header .title {
             width: fit-content;
@@ -243,7 +246,6 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: gradient-flow 12s ease-in-out infinite alternate;
-            cursor: pointer;
         }
         .header .subtitle {
             font-size: 2.6rem;
@@ -262,7 +264,6 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: gradient-flow 12s ease-in-out infinite alternate;
-            cursor: pointer;
         }
         @keyframes gradient-flow {
             0% {
@@ -726,32 +727,46 @@
         }
 
         /* 新增提示样式 */
-        .success-toast {
+        .toast {
             position: fixed;
-            bottom: 20px;
+            top: 50px; /* 调整提示框位置 */
             left: 50%;
             transform: translateX(-50%);
-            background: var(--secondary-color);
-            color: var(--text-color);
-            padding: 10px 20px;
-            border-radius: 20px;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s, transform 0.3s;
-            transform: translateX(-50%) translateY(10px);
+            z-index: 2000;
+            font-size: 16px;
         }
-
-        .success-toast.active {
+        .toast.active {
             opacity: 1;
             visibility: visible;
-            transform: translateX(-50%) translateY(0);
+            transform: translateX(-50%);
+        }
+        .toast-icon {
+            color: #4CAF50;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        .toast-message {
+            font-size: 16px;
         }
 
-        /* 抖动动画 */
+        /* 输入框摇动动画 */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-4px); }
+        }
+        .shake {
+            animation: shake 0.4s ease-in-out;
         }
 
         /* 确保所有可能穿透的区域被覆盖 */
@@ -930,6 +945,38 @@
         let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
         let errorLogs = JSON.parse(localStorage.getItem('errorLogs')) || [];
 
+        // 新增输入验证逻辑
+        function validateInput(inputElement) {
+            if (!inputElement.value.trim()) {
+                inputElement.classList.add('shake');
+                inputElement.addEventListener('animationend', () => {
+                    inputElement.classList.remove('shake');
+                }, { once: true });
+                showToast('请输入消息内容', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        // 新增Toast提示
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('active'), 10);
+            setTimeout(() => {
+                toast.classList.remove('active');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 2000);
+        }
+
         pageTitle.addEventListener('click', () => {
             history.pushState({ page: 'one_a' }, 'One A Page', 'one_a.html');
             chatPage.classList.remove('active');
@@ -979,15 +1026,8 @@
             const userInput = typingForm.querySelector('.typing-input');
             const message = userInput.value.trim();
             
-            // 新增输入框为空的交互反馈
-            if (!message) {
-                userInput.style.animation = 'shake 0.5s';
-                setTimeout(() => userInput.style.animation = '', 500);
-                showSuccessToast('请输入有效内容');
-                return;
-            }
-
-            if (isProcessing) return;
+            // 输入验证
+            if (!validateInput(userInput) || isProcessing) return;
 
             if (message === "测试") {
                 openTestPanel();
@@ -1122,7 +1162,7 @@
             conversationHistory = [];
             localStorage.removeItem('conversationHistory');
             closeModal();
-            showSuccessToast('聊天记录已删除');
+            showToast('聊天记录已删除', 'success');
         }
 
         function openSettingsModal() {
@@ -1240,21 +1280,6 @@
             localStorage.removeItem('errorLogs');
             errorLogs = [];
             location.reload();
-        }
-
-        // 新增提示功能
-        function showSuccessToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'success-toast';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            // 应用动画
-            toast.classList.add('active');
-            setTimeout(() => {
-                toast.classList.remove('active');
-                setTimeout(() => document.body.removeChild(toast), 300);
-            }, 1500);
         }
     </script>
 </body>
