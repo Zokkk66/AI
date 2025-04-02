@@ -169,7 +169,6 @@
             font-weight: bold;
             color: var(--text-color);
             transition: all var(--transition-speed) ease;
-            cursor: default;
         }
 
         .nav-buttons {
@@ -217,7 +216,6 @@
             overflow-x: hidden;
             background: var(--primary-color);
             transition: background var(--transition-speed) ease;
-            pointer-events: none;
         }
         body.hide-header .header {
             margin: 0;
@@ -226,7 +224,6 @@
         .header :where(.title, .subtitle) {
             font-weight: 500;
             line-height: 4rem;
-            cursor: default;
         }
         .header .title {
             width: fit-content;
@@ -729,33 +726,38 @@
         /* 新增提示样式 */
         .toast {
             position: fixed;
-            top: 50px; /* 调整提示框位置 */
+            top: 80px;
             left: 50%;
             transform: translateX(-50%);
             color: white;
-            padding: 15px 25px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 12px 24px;
+            border-radius: 25px;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s, transform 0.3s;
+            transform: translateX(-50%) translateY(10px);
             z-index: 2000;
-            font-size: 16px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--primary-color-4);
+        }
+        .toast.error {
+            background: var(--primary-color-1);
+        }
+        .toast.success {
+            background: var(--primary-color-4);
         }
         .toast.active {
             opacity: 1;
             visibility: visible;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(0);
         }
         .toast-icon {
-            color: #4CAF50;
             font-size: 20px;
-            margin-right: 10px;
-        }
-        .toast-message {
-            font-size: 16px;
+            color: white;
         }
 
         /* 输入框摇动动画 */
@@ -925,7 +927,6 @@
         });
 
         // 聊天应用逻辑
-        const pageTitle = document.getElementById('pageTitle');
         const chatPage = document.getElementById('chatPage');
         const typingForm = document.querySelector(".typing-form");
         const chatContainer = document.querySelector(".chat-list");
@@ -961,12 +962,10 @@
         // 新增Toast提示
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
-            toast.className = `toast`;
+            toast.className = `toast ${type}`;
             toast.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="toast-message">${message}</div>
+                <span class="toast-icon material-symbols-rounded">${type === 'success' ? 'check_circle' : 'error'}</span>
+                <span class="toast-message">${message}</span>
             `;
             document.body.appendChild(toast);
             
@@ -976,18 +975,6 @@
                 setTimeout(() => document.body.removeChild(toast), 300);
             }, 2000);
         }
-
-        pageTitle.addEventListener('click', () => {
-            history.pushState({ page: 'one_a' }, 'One A Page', 'one_a.html');
-            chatPage.classList.remove('active');
-            window.location.href = 'one_a.html';
-        });
-
-        window.addEventListener('popstate', (event) => {
-            if (event.state && event.state.page === 'one_a') {
-                window.location.href = 'index.html';
-            }
-        });
 
         function speakText(text) {
             if (isSpeechEnabled && 'speechSynthesis' in window) {
