@@ -747,13 +747,11 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-            }
+        /* 抖动动画 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
 
         /* 确保所有可能穿透的区域被覆盖 */
@@ -980,7 +978,16 @@
         async function sendMessage() {
             const userInput = typingForm.querySelector('.typing-input');
             const message = userInput.value.trim();
-            if (!message || isProcessing) return;
+            
+            // 新增输入框为空的交互反馈
+            if (!message) {
+                userInput.style.animation = 'shake 0.5s';
+                setTimeout(() => userInput.style.animation = '', 500);
+                showSuccessToast('请输入有效内容');
+                return;
+            }
+
+            if (isProcessing) return;
 
             if (message === "测试") {
                 openTestPanel();
