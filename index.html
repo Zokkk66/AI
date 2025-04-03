@@ -35,8 +35,8 @@
             --shadow-md: 0 4px 10px var(--shadow-color);
             --shadow-lg: 0 8px 20px var(--shadow-color);
             --transition-speed: 0.3s;
-            --toast-success-bg: #F5F5DC; /* 米白色 */
-            --toast-error-bg: #FFE6E6; /* 浅红色 */
+            --toast-success-bg: var(--primary-color-4);
+            --toast-error-bg: var(--primary-color-1);
         }
         .light_mode {
             --text-color: #222;
@@ -46,8 +46,8 @@
             --secondary-color: #E9EEF6;
             --secondary-hover-color: #DBE1EA;
             --shadow-color: rgba(0, 0, 0, 0.05);
-            --toast-success-bg: #F5F5DC; /* 米白色 */
-            --toast-error-bg: #FFE6E6; /* 浅红色 */
+            --toast-success-bg: #6BCB77;
+            --toast-error-bg: #FF6B6B;
         }
         html {
             background: var(--primary-color);
@@ -775,7 +775,7 @@
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-8px); }
             50% { transform: translateX(8px); }
-             75% { transform: translateX(-4px); }
+            75% { transform: translateX(-4px); }
         }
         .shake {
             animation: shake 0.4s ease-in-out;
