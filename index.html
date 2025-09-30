@@ -1122,11 +1122,13 @@
             toggleThemeButton.textContent = isLightMode ? 'dark_mode' : 'light_mode';
         });
 
+        // 关键修改：默认加载浅色模式
         function loadThemeFromLocalstorage() {
             const savedTheme = localStorage.getItem('themeColor');
-            if (savedTheme === 'light_mode') {
+            // 如果本地存储没有主题，默认添加浅色模式类
+            if (savedTheme === 'light_mode' || !savedTheme) {
                 document.body.classList.add('light_mode');
-                toggleThemeButton.textContent = 'dark_mode';
+                toggleThemeButton.textContent = 'dark_mode'; // 浅色模式下显示“切换到深色”
             } else {
                 document.body.classList.remove('light_mode');
                 toggleThemeButton.textContent = 'light_mode';
